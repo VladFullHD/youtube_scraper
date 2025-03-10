@@ -1,7 +1,6 @@
 import undetected_chromedriver as uc
 import time
 
-
 def scroll_to_bottom(driver):
     """Плавная прокрутка страницы вниз"""
     last_height = driver.execute_script("return document.body.scrollHeight")

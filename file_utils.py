@@ -1,6 +1,6 @@
 import os
 import csv
-
+import json
 
 def save_html_file(html, html_path):
     """
@@ -24,30 +24,6 @@ def save_html_file(html, html_path):
     except Exception as e:
         print(f'Неизвестная ошибка записи в файл "{html_path}": {e}')
         return False
-
-def open_html_file(html_path):
-    """
-    Reads the saved HTML-code file.
-
-    Args:
-        html_path(str): The path to the HTML-code file.
-
-    Returns:
-        str: The HTML code of the page.
-        None: If the file is not found or an error occurred when opening the file.
-    """
-    try:
-        with open(html_path, 'r', encoding='utf-8') as f:
-            html = f.read()
-        return html
-    except FileNotFoundError:
-        print(f'Ошибка: Файл "{html_path}" не найден.')
-        return None
-    except OSError as e:
-        print(f'Ошибка при открытии файла "{html_path}": {e}')
-    except Exception as e:
-        print(f'Неизвестная ошибка при открытии файла "{html_path}": {e}')
-        return None
 
 def save_csv_file(data, csv_path, header=None):
     """
@@ -75,6 +51,50 @@ def save_csv_file(data, csv_path, header=None):
     except Exception as e:
         print(f'Неизвестная ошибка записи в файл "{csv_path}": {e}')
         return False
+
+def save_json_file(data, filename):
+    try:
+        with open(filename, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=4)
+        print(f'Данные успешно сохранены в {filename}')
+    except Exception as e:
+        print(f'Произошла ошибка при сохранении в JSON: {e}')
+
+def load_filters(filepath='filters.json'):
+    with open(filepath, 'r', encoding='utf-8') as f:
+        return json.load(f)
+
+def load_css_selectors(filepath='css_selectors.json'):
+    with open(filepath, 'r', encoding='utf-8') as f:
+        return json.load(f)
+
+def load_xpath(filepath='xpath.json'):
+    with open(filepath, 'r', encoding='utf-8') as f:
+        return json.load(f)
+
+def load_html_file(html_path):
+    """
+    Reads the saved HTML-code file.
+
+    Args:
+        html_path(str): The path to the HTML-code file.
+
+    Returns:
+        str: The HTML code of the page.
+        None: If the file is not found or an error occurred when opening the file.
+    """
+    try:
+        with open(html_path, 'r', encoding='utf-8') as f:
+            html = f.read()
+        return html
+    except FileNotFoundError:
+        print(f'Ошибка: Файл "{html_path}" не найден.')
+        return None
+    except OSError as e:
+        print(f'Ошибка при открытии файла "{html_path}": {e}')
+    except Exception as e:
+        print(f'Неизвестная ошибка при открытии файла "{html_path}": {e}')
+        return None
 
 def html_file_path(folder_name, html_filename):
     """
