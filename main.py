@@ -77,6 +77,23 @@ def get_video_titles(video_elements, title_css):
             print(f'Произошла ошибка при сборе заголовков видео: {e}')
     return titles
 
+def get_video_urls(video_elements, url_css):
+    video_urls = []
+    for video_element in video_elements:
+        try:
+            video_url_element = WebDriverWait(video_element, 5).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, url_css))
+            )
+            video_url = video_url_element.get_attribute('href')
+            if video_url:
+                video_urls.append(video_url)
+        except TimeoutException:
+            print('Ссылка на видео не найдена')
+            video_urls.append('Не найдено!')
+        except Exception as e:
+            print(f'Произошла ошибка при сборе ссылок на видео: {e}')
+    return video_urls
+
 def get_video_views(video_elements, view_css):
     views = []
     for video_element in video_elements:
@@ -94,7 +111,7 @@ def get_video_views(video_elements, view_css):
             print(f'Произошла ошибка при сборе количества просмотров: {e}')
     return views
 
-def get_video_release_date(video_elements, release_date_css):
+def get_video_release_dates(video_elements, release_date_css):
     release_dates = []
     for video_element in video_elements:
         try:
@@ -115,7 +132,7 @@ def get_channel_names(video_elements, channel_css):
     channel_names = []
     for video_element in video_elements:
         try:
-            channel_element = WebDriverWait(video_element, 10).until(
+            channel_element = WebDriverWait(video_element, 5).until(
                 EC.presence_of_element_located((By.CSS_SELECTOR, channel_css))
             )
             channel_name = channel_element.text.strip()
@@ -132,7 +149,7 @@ def get_channel_urls(video_elements, channel_css):
     channel_urls = []
     for video_element in video_elements:
         try:
-            channel_element = WebDriverWait(video_element, 10).until(
+            channel_element = WebDriverWait(video_element, 5).until(
                 EC.presence_of_element_located((By.CSS_SELECTOR, channel_css))
             )
             channel_url = channel_element.get_attribute('href')
@@ -145,11 +162,12 @@ def get_channel_urls(video_elements, channel_css):
             print(f'Произошла ошибка при сборе ссылок на каналы: {e}')
     return channel_urls
 
-def collect_video_data(driver, css_selectors):
+def get_main_info_from_search(driver, css_selectors):
     video_elements = get_all_video_elements(driver, css_selectors['all_videos'])
     titles = get_video_titles(video_elements, css_selectors['title'])
-    views = get_video_views(video_elements, css_selectors['view'])
-    release_dates = get_video_release_date(video_elements, css_selectors['release_date'])
+    video_urls = get_video_urls(video_elements, css_selectors['video_url'])
+    views = get_video_views(video_elements, css_selectors['views'])
+    release_dates = get_video_release_dates(video_elements, css_selectors['release_date'])
     channel_names = get_channel_names(video_elements, css_selectors['channel_info'])
     channel_urls = get_channel_urls(video_elements, css_selectors['channel_url'])
 
@@ -158,6 +176,7 @@ def collect_video_data(driver, css_selectors):
     for i, title in enumerate(titles):
         video_info = {
             'title': title,
+            'video_url': video_urls[i],
             'views': views[i],
             'release': release_dates[i],
             'channel_name': channel_names[i],
@@ -178,7 +197,7 @@ def main():
     time.sleep(3)
 
     css_selectors = load_css_selectors()
-    collect_video_data(driver, css_selectors)
+    get_main_info_from_search(driver, css_selectors)
 
     input('Нажмите Enter, чтобы закрыть драйвер!')
     driver.quit()

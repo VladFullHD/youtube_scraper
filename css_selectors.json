@@ -1,7 +1,9 @@
 {
   "title": "#video-title > yt-formatted-string",
   "all_videos": "#contents > ytd-video-renderer",
-  "view": "#metadata-line > span:nth-child(3)",
+  "video_url": "#video-title",
+  "views": "#metadata-line > span:nth-child(3)",
+  "video_length": "#overlays > ytd-thumbnail-overlay-time-status-renderer > div.thumbnail-overlay-badge-shape.style-scope.ytd-thumbnail-overlay-time-status-renderer > badge-shape > div",
   "release_date": "#metadata-line > span:nth-child(4)",
   "channel_info": "#channel-info",
   "channel_url": "#channel-thumbnail"
