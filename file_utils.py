@@ -60,15 +60,7 @@ def save_json_file(data, filename):
     except Exception as e:
         print(f'Произошла ошибка при сохранении в JSON: {e}')
 
-def load_filters(filepath='filters.json'):
-    with open(filepath, 'r', encoding='utf-8') as f:
-        return json.load(f)
-
-def load_css_selectors(filepath='css_selectors.json'):
-    with open(filepath, 'r', encoding='utf-8') as f:
-        return json.load(f)
-
-def load_xpath(filepath='xpath.json'):
+def load_json_file(filepath):
     with open(filepath, 'r', encoding='utf-8') as f:
         return json.load(f)
 

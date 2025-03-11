@@ -1,14 +1,13 @@
+import re
 import time
 
 from selenium.common import TimeoutException
 from selenium.webdriver import ActionChains
-from selenium.webdriver.support.wait import WebDriverWait
 from driver_utils import setup_options_webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from file_utils import load_filters, load_css_selectors, save_json_file
+from file_utils import save_json_file, load_json_file
 
 
 def open_youtube(driver):
@@ -30,7 +29,7 @@ def search_input(driver, search_text):
         print(f'Произошла ошибка при вводе текста в поисковую строку: {e}')
 
 def filter_settings(driver, filter_names):
-    filters = load_filters()
+    filters = load_json_file('filters.json')
     try:
         for filter_name in filter_names:
             filter_button = WebDriverWait(driver, 10).until(
@@ -171,7 +170,6 @@ def get_main_info_from_search(driver, css_selectors):
     channel_names = get_channel_names(video_elements, css_selectors['channel_info'])
     channel_urls = get_channel_urls(video_elements, css_selectors['channel_url'])
 
-
     video_data = []
     for i, title in enumerate(titles):
         video_info = {
@@ -185,19 +183,43 @@ def get_main_info_from_search(driver, css_selectors):
         video_data.append(video_info)
     save_json_file(video_data, 'video_data.json')
 
+def get_likes(driver):
+    try:
+        like_button = driver.find_element(By.CSS_SELECTOR, 'button[aria-label^="Видео понравилось вам и ещё"]')
+        aria_label = like_button.get_attribute("aria-label")
+        match = re.search(r"и ещё ([\d\s\xa0]+)", aria_label)
+        if match:
+            likes_str = match.group(1).replace("\xa0", "").replace(" ", "")
+            if "млн" in aria_label:
+                likes = int(likes_str) * 1000000
+            else:
+                likes = int(likes_str)
+
+            # Форматирование числа с разделителями тысяч
+            formatted_likes = "{:,}".format(likes).replace(",", ".")
+
+            print(f"{formatted_likes} лайка")
+        else:
+            return None
+    except Exception as e:
+        print(f"Ошибка при извлечении лайков: {e}")
+        return None
 
 def main():
     driver = setup_options_webdriver()
     open_youtube(driver)
+    driver.get('https://www.youtube.com/watch?v=iyAhEH2ffUY')
+    time.sleep(2)
+    get_likes(driver)
 
-    search_text = 'Лига легенд'
-    search_input(driver, search_text)
-
-    filter_settings(driver, ['this_month', 'upload_date'])
-    time.sleep(3)
-
-    css_selectors = load_css_selectors()
-    get_main_info_from_search(driver, css_selectors)
+    # search_text = 'Лига легенд'
+    # search_input(driver, search_text)
+    #
+    # filter_settings(driver, ['this_month', 'upload_date'])
+    # time.sleep(3)
+    #
+    # css_selectors = load_json_file('css_selectors.json')
+    # get_main_info_from_search(driver, css_selectors)
 
     input('Нажмите Enter, чтобы закрыть драйвер!')
     driver.quit()
