@@ -1,6 +1,5 @@
 import re
 import time
-
 from selenium.common import TimeoutException
 from selenium.webdriver import ActionChains
 from driver_utils import setup_options_webdriver
@@ -49,22 +48,22 @@ def filter_settings(driver, filter_names):
     except Exception as e:
         print(f'Произошла ошибка при выборе фильтра: {e}')
 
-def get_all_video_elements(driver, all_videos_css):
+def get_all_elements_from_search(driver, all_videos_css):
     try:
         videos_elements = WebDriverWait(driver, 10).until(
-            EC.presence_of_all_elements_located((By.CSS_SELECTOR, all_videos_css))
+            EC.presence_of_all_elements_located((By.CSS_SELECTOR, all_videos_css['all_videos']))
         )
         return videos_elements
     except Exception as e:
         print(f'Произошла ошибка при сборе общей информации о роликах: {e}')
         return None
 
-def get_video_titles(video_elements, title_css):
+def get_titles_from_search(video_elements, title_css):
     titles = []
     for video_element in video_elements:
         try:
             title_element = WebDriverWait(video_element, 5).until(
-                EC.presence_of_element_located((By.CSS_SELECTOR, title_css))
+                EC.presence_of_element_located((By.CSS_SELECTOR, title_css['title']))
             )
             title = title_element.text.strip()
             if title:
@@ -76,12 +75,12 @@ def get_video_titles(video_elements, title_css):
             print(f'Произошла ошибка при сборе заголовков видео: {e}')
     return titles
 
-def get_video_urls(video_elements, url_css):
+def get_urls_from_search(video_elements, url_css):
     video_urls = []
     for video_element in video_elements:
         try:
             video_url_element = WebDriverWait(video_element, 5).until(
-                EC.presence_of_element_located((By.CSS_SELECTOR, url_css))
+                EC.presence_of_element_located((By.CSS_SELECTOR, url_css['video_url']))
             )
             video_url = video_url_element.get_attribute('href')
             if video_url:
@@ -93,12 +92,12 @@ def get_video_urls(video_elements, url_css):
             print(f'Произошла ошибка при сборе ссылок на видео: {e}')
     return video_urls
 
-def get_video_views(video_elements, view_css):
+def get_views_from_search(video_elements, views_css):
     views = []
     for video_element in video_elements:
         try:
             view_element = WebDriverWait(video_element, 5).until(
-                EC.presence_of_element_located((By.CSS_SELECTOR, view_css))
+                EC.presence_of_element_located((By.CSS_SELECTOR, views_css['views']))
             )
             view = view_element.text.strip()
             if view:
@@ -110,12 +109,12 @@ def get_video_views(video_elements, view_css):
             print(f'Произошла ошибка при сборе количества просмотров: {e}')
     return views
 
-def get_video_release_dates(video_elements, release_date_css):
+def get_release_dates_from_search(video_elements, release_date_css):
     release_dates = []
     for video_element in video_elements:
         try:
             release_date_element = WebDriverWait(video_element, 5).until(
-                EC.presence_of_element_located((By.CSS_SELECTOR, release_date_css))
+                EC.presence_of_element_located((By.CSS_SELECTOR, release_date_css['release_date']))
             )
             release_date = release_date_element.text.strip()
             if release_date:
@@ -127,12 +126,12 @@ def get_video_release_dates(video_elements, release_date_css):
             print(f'Произошла ошибка при сборе даты релиза: {e}')
     return release_dates
 
-def get_channel_names(video_elements, channel_css):
+def get_channel_names_from_search(video_elements, channel_name_css):
     channel_names = []
     for video_element in video_elements:
         try:
             channel_element = WebDriverWait(video_element, 5).until(
-                EC.presence_of_element_located((By.CSS_SELECTOR, channel_css))
+                EC.presence_of_element_located((By.CSS_SELECTOR, channel_name_css['channel_info']))
             )
             channel_name = channel_element.text.strip()
             if channel_name:
@@ -144,12 +143,12 @@ def get_channel_names(video_elements, channel_css):
             print(f'Произошла ошибка при сборе наименований каналов: {e}')
     return channel_names
 
-def get_channel_urls(video_elements, channel_css):
+def get_channel_urls_from_search(video_elements, channel_url_css):
     channel_urls = []
     for video_element in video_elements:
         try:
             channel_element = WebDriverWait(video_element, 5).until(
-                EC.presence_of_element_located((By.CSS_SELECTOR, channel_css))
+                EC.presence_of_element_located((By.CSS_SELECTOR, channel_url_css['channel_url']))
             )
             channel_url = channel_element.get_attribute('href')
             if channel_url:
@@ -161,14 +160,14 @@ def get_channel_urls(video_elements, channel_css):
             print(f'Произошла ошибка при сборе ссылок на каналы: {e}')
     return channel_urls
 
-def get_main_info_from_search(driver, css_selectors):
-    video_elements = get_all_video_elements(driver, css_selectors['all_videos'])
-    titles = get_video_titles(video_elements, css_selectors['title'])
-    video_urls = get_video_urls(video_elements, css_selectors['video_url'])
-    views = get_video_views(video_elements, css_selectors['views'])
-    release_dates = get_video_release_dates(video_elements, css_selectors['release_date'])
-    channel_names = get_channel_names(video_elements, css_selectors['channel_info'])
-    channel_urls = get_channel_urls(video_elements, css_selectors['channel_url'])
+def get_all_info_from_search(driver, css_selectors):
+    video_elements = get_all_elements_from_search(driver, css_selectors['all_videos'])
+    titles = get_titles_from_search(video_elements, css_selectors['title'])
+    video_urls = get_urls_from_search(video_elements, css_selectors['video_url'])
+    views = get_views_from_search(video_elements, css_selectors['views'])
+    release_dates = get_release_dates_from_search(video_elements, css_selectors['release_date'])
+    channel_names = get_channel_names_from_search(video_elements, css_selectors['channel_info'])
+    channel_urls = get_channel_urls_from_search(video_elements, css_selectors['channel_url'])
 
     video_data = []
     for i, title in enumerate(titles):
@@ -181,16 +180,19 @@ def get_main_info_from_search(driver, css_selectors):
             'channel_url': channel_urls[i]
         }
         video_data.append(video_info)
-    save_json_file(video_data, 'video_data.json')
 
 def get_likes(driver):
     try:
-        like_button = driver.find_element(By.CSS_SELECTOR, 'button[aria-label^="Видео понравилось вам и ещё"]')
-        aria_label = like_button.get_attribute("aria-label")
+        like_element = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, 'button[aria-label^="Видео понравилось вам и ещё"]'))
+        )
+        aria_label = like_element.get_attribute("aria-label")
         match = re.search(r"и ещё ([\d\s\xa0]+)", aria_label)
         if match:
             likes_str = match.group(1).replace("\xa0", "").replace(" ", "")
-            if "млн" in aria_label:
+            if "тыс" in aria_label:
+                likes = int(likes_str) * 1000
+            elif "млн" in aria_label:
                 likes = int(likes_str) * 1000000
             else:
                 likes = int(likes_str)
@@ -198,28 +200,74 @@ def get_likes(driver):
             # Форматирование числа с разделителями тысяч
             formatted_likes = "{:,}".format(likes).replace(",", ".")
 
-            print(f"{formatted_likes} лайка")
+            print(f"{formatted_likes} лайка/ов")
         else:
             return None
     except Exception as e:
         print(f"Ошибка при извлечении лайков: {e}")
         return None
 
+def scraping_info_from_search(driver, css_selectors, selected_data):
+    video_elements = get_all_elements_from_search(driver, css_selectors)
+
+    collected_data = {key: data_functions[key](video_elements, css_selectors) for key in selected_data}
+    video_data = []
+    for i in range(len(video_elements)):
+        video_info = {key: collected_data[key][i] for key in selected_data}
+        video_data.append(video_info)
+    return video_data
+
+data_functions = {
+    "names": get_titles_from_search,
+    "urls": get_urls_from_search,
+    "views": get_views_from_search,
+    "release_dates": get_release_dates_from_search,
+    "channel_names": get_channel_names_from_search,
+    "channel_urls": get_channel_urls_from_search,
+}
+
 def main():
     driver = setup_options_webdriver()
     open_youtube(driver)
-    driver.get('https://www.youtube.com/watch?v=iyAhEH2ffUY')
-    time.sleep(2)
-    get_likes(driver)
 
-    # search_text = 'Лига легенд'
-    # search_input(driver, search_text)
-    #
-    # filter_settings(driver, ['this_month', 'upload_date'])
-    # time.sleep(3)
-    #
-    # css_selectors = load_json_file('css_selectors.json')
-    # get_main_info_from_search(driver, css_selectors)
+    css_selectors = load_json_file('css_selectors.json')
+    filters = load_json_file('filters.json')
+
+    search_text = input('Введите поисковый запрос для поиска в YouTube: ').strip()
+    search_input(driver, search_text)
+    time.sleep(2)
+
+    available_filters = list(filters.keys())
+    print(f'Доступные фильтры: {', '.join(available_filters)}')
+    user_filter_input = input('Выберите фильтр (или оставьте пустым для пропуска): ').strip()
+
+    filter_names = []
+    selected_filters = []
+    if user_filter_input:
+        selected_filters = [f.strip() for f in user_filter_input.split(',') if f.strip() in filters]
+    if not selected_filters:
+        print('Ошибка: введены некорректные фильтры!')
+    else:
+        filter_names = selected_filters
+
+    if filter_names:
+        filter_settings(driver, filter_names)
+        time.sleep(2)
+
+    available_options = list(data_functions.keys())
+    print(f'Доступные параметры: {', '.join(available_options)}')
+    user_input = input('Введите через запятую, какие данные вы хотите собрать: ').strip()
+
+    selected_data = [item.strip() for item in user_input.split(',') if item.strip() in data_functions]
+
+    if not selected_data:
+        print('Не выбраны корректные параметры! Завершение программы.')
+        driver.quit()
+        return
+
+    video_data = scraping_info_from_search(driver, css_selectors, selected_data)
+
+    save_json_file(video_data, 'video_data.json')
 
     input('Нажмите Enter, чтобы закрыть драйвер!')
     driver.quit()
