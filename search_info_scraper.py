@@ -15,7 +15,8 @@ def open_youtube(driver):
     except Exception as e:
         print(f'Произошла ошибка при открытии YouTube: {e}')
 
-def search_input(driver, search_text):
+def search_input(driver):
+    search_text = input('Введите поисковый запрос для поиска в YouTube: ').strip()
     try:
         search_box = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.XPATH, '//*[@id="center"]/yt-searchbox/div[1]/form/input'))
@@ -181,61 +182,18 @@ def get_all_info_from_search(driver, css_selectors):
         }
         video_data.append(video_info)
 
-def get_likes(driver):
-    try:
-        like_element = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, 'button[aria-label^="Видео понравилось вам и ещё"]'))
-        )
-        aria_label = like_element.get_attribute("aria-label")
-        match = re.search(r"и ещё ([\d\s\xa0]+)", aria_label)
-        if match:
-            likes_str = match.group(1).replace("\xa0", "").replace(" ", "")
-            if "тыс" in aria_label:
-                likes = int(likes_str) * 1000
-            elif "млн" in aria_label:
-                likes = int(likes_str) * 1000000
-            else:
-                likes = int(likes_str)
-
-            # Форматирование числа с разделителями тысяч
-            formatted_likes = "{:,}".format(likes).replace(",", ".")
-
-            print(f"{formatted_likes} лайка/ов")
-        else:
-            return None
-    except Exception as e:
-        print(f"Ошибка при извлечении лайков: {e}")
-        return None
-
-def scraping_info_from_search(driver, css_selectors, selected_data):
+def scraping_info_from_search(driver, css_selectors, selected_data, functions):
     video_elements = get_all_elements_from_search(driver, css_selectors)
 
-    collected_data = {key: data_functions[key](video_elements, css_selectors) for key in selected_data}
+    collected_data = {key: functions[key](video_elements, css_selectors) for key in selected_data}
     video_data = []
     for i in range(len(video_elements)):
         video_info = {key: collected_data[key][i] for key in selected_data}
         video_data.append(video_info)
     return video_data
 
-data_functions = {
-    "names": get_titles_from_search,
-    "urls": get_urls_from_search,
-    "views": get_views_from_search,
-    "release_dates": get_release_dates_from_search,
-    "channel_names": get_channel_names_from_search,
-    "channel_urls": get_channel_urls_from_search,
-}
-
-def main():
-    driver = setup_options_webdriver()
-    open_youtube(driver)
-
-    css_selectors = load_json_file('css_selectors.json')
+def filters_input(driver):
     filters = load_json_file('filters.json')
-
-    search_text = input('Введите поисковый запрос для поиска в YouTube: ').strip()
-    search_input(driver, search_text)
-    time.sleep(2)
 
     available_filters = list(filters.keys())
     print(f'Доступные фильтры: {', '.join(available_filters)}')
@@ -254,18 +212,61 @@ def main():
         filter_settings(driver, filter_names)
         time.sleep(2)
 
-    available_options = list(data_functions.keys())
+def info_settings_input(driver, functions):
+    available_options = list(functions.keys())
     print(f'Доступные параметры: {', '.join(available_options)}')
     user_input = input('Введите через запятую, какие данные вы хотите собрать: ').strip()
 
-    selected_data = [item.strip() for item in user_input.split(',') if item.strip() in data_functions]
-
+    if not user_input:
+        print('Не указано, какие данные необходимо собрать. Запускаю сбор всех данных...')
+        selected_data = available_options
+    else:
+        selected_data = [item.strip() for item in user_input.split(',') if item.strip() in functions]
     if not selected_data:
         print('Не выбраны корректные параметры! Завершение программы.')
         driver.quit()
-        return
 
-    video_data = scraping_info_from_search(driver, css_selectors, selected_data)
+    return selected_data
+
+def shorts_checker(video_elements, css_selectors):
+    shorts = []
+    for video_element in video_elements:
+        try:
+            shorts_element = WebDriverWait(video_element, 0.5).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, css_selectors['shorts_checker']))
+            )
+            if shorts_element:
+                shorts.append('Shorts')
+        except TimeoutException:
+            shorts.append('Video')
+        except Exception as e:
+            print(f'Произошла ошибка при сборе заголовков видео: {e}')
+    return shorts
+
+search_scraper_functions = {
+    "names": get_titles_from_search,
+    "urls": get_urls_from_search,
+    "type": shorts_checker,
+    "views": get_views_from_search,
+    "release_dates": get_release_dates_from_search,
+    "channel_names": get_channel_names_from_search,
+    "channel_urls": get_channel_urls_from_search,
+}
+
+def main():
+    driver = setup_options_webdriver()
+    open_youtube(driver)
+
+    css_selectors = load_json_file('css_selectors.json')
+    functions = search_scraper_functions
+
+    search_input(driver)
+    time.sleep(2)
+
+    filters_input(driver)
+    selected_data = info_settings_input(driver, functions)
+
+    video_data = scraping_info_from_search(driver, css_selectors, selected_data, functions)
 
     save_json_file(video_data, 'video_data.json')
 
