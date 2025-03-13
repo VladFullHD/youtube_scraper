@@ -3,14 +3,26 @@
   "all_videos": "#contents > ytd-video-renderer",
   "video_url": "#video-title",
   "views": "#metadata-line > span:nth-child(3)",
-  "likes": "button[aria-label^=\"Видео понравилось вам и ещё\"]",
-  "comments": "#count > yt-formatted-string",
-  "shorts_likes": "#like-button > yt-button-shape > label > div",
-  "video_length": "#overlays > ytd-thumbnail-overlay-time-status-renderer > div.thumbnail-overlay-badge-shape.style-scope.ytd-thumbnail-overlay-time-status-renderer > badge-shape > div",
   "release_date": "#metadata-line > span:nth-child(4)",
   "channel_info": "#channel-info",
   "channel_url": "#channel-thumbnail",
   "shorts_checker": "#overlays > ytd-thumbnail-overlay-time-status-renderer > div.thumbnail-overlay-badge-shape.style-scope.ytd-thumbnail-overlay-time-status-renderer > badge-shape > div.badge-shape-wiz__icon",
-  "shorts_checker_video": "#shorts-container",
-  "shorts_comments": "#comments-button > ytd-button-renderer > yt-button-shape > label > div"
+
+  "video_title": "#title > h1 > yt-formatted-string",
+  "likes": "button[aria-label^=\"Видео понравилось вам и ещё\"]",
+  "description_button": "#expand",
+  "description": "#description-inline-expander > yt-attributed-string",
+  "comments": "#count > yt-formatted-string",
+  "video_views": "#info > span:nth-child(1)",
+  "video_release_date": "#info > span:nth-child(3)",
+
+  "shorts_title": "#title",
+  "shorts_comments": "#comments-button > ytd-button-renderer > yt-button-shape > label > div",
+  "shorts_likes": "#factoids > factoid-renderer:nth-child(1) > div > span.ytwFactoidRendererValue",
+  "shorts_menu_button": "#button-shape > button > div",
+  "shorts_description_button": "#items > ytd-menu-service-item-renderer",
+  "shorts_description": "#formatted-snippet-text",
+  "shorts_views": "#factoids > view-count-factoid-renderer > factoid-renderer > div > span.ytwFactoidRendererValue > span",
+  "shorts_month_day": "#factoids > factoid-renderer:nth-child(3) > div > span.ytwFactoidRendererValue",
+  "shorts_year": "#factoids > factoid-renderer:nth-child(3) > div > span.ytwFactoidRendererLabel"
 }
