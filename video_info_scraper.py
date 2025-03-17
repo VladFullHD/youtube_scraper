@@ -10,6 +10,16 @@ from selenium.webdriver.support import expected_conditions as EC
 from file_utils import save_json_file, load_json_file
 from search_info_scraper import info_settings_input
 
+def click_element(driver, css_selector, timeout=2):
+    try:
+        element = WebDriverWait(driver, timeout).until(
+            EC.visibility_of_element_located((By.CSS_SELECTOR, css_selector))
+        )
+        actions = ActionChains(driver)
+        actions.move_to_element(element).click().perform()
+    except TimeoutException:
+        pass
+
 
 def open_video_description(driver, css_selectors):
     try:
@@ -115,20 +125,22 @@ def get_video_title(driver, css_selectors):
 
 
 def get_shorts_title(driver, css_selectors):
-    try:
-        shorts_title_element = WebDriverWait(driver, 5).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, css_selectors['shorts_title']))
-        )
-        shorts_title = shorts_title_element.text.strip()
-        print(shorts_title)
-        return shorts_title
-    except TimeoutException:
-        return 'Название Shorts не найдено!'
-    except Exception as e:
-        print(f'Произошла ошибка при сборе названия Video: {e}')
+    open_shorts_description(driver, css_selectors)
+    selectors = ['shorts_title_1', 'shorts_title_2']
+    for selector in selectors:
+        try:
+            shorts_title_element = WebDriverWait(driver, 2).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, css_selectors[selector]))
+            )
+            return shorts_title_element.text.strip()
+        except TimeoutException:
+            pass
+        except Exception as e:
+            print(f'Произошла ошибка при сборе названия Shorts: {e}')
+
+    return 'Название Shorts не найдено'
 
 def get_shorts_likes(driver, css_selectors):
-    open_shorts_description(driver, css_selectors)
     try:
         shorts_likes_element = WebDriverWait(driver, 5).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, css_selectors['shorts_likes']))
@@ -153,32 +165,26 @@ def get_shorts_comments(driver, css_selectors):
         print(f'Произошла ошибка при сборе комментариев в Shorts: {e}')
 
 def open_shorts_description(driver, css_selectors):
-    try:
-        shorts_menu_button = WebDriverWait(driver, 10).until(
-            EC.element_to_be_clickable((By.CSS_SELECTOR, css_selectors['shorts_menu_button']))
-        )
-        actions = ActionChains(driver)
-        actions.move_to_element(shorts_menu_button).click().perform()
-        shorts_description_button = WebDriverWait(driver, 10).until(
-            EC.element_to_be_clickable((By.CSS_SELECTOR, css_selectors['shorts_description_button']))
-        )
-        actions.move_to_element(shorts_description_button).click().perform()
-        time.sleep(1)
-    except TimeoutException:
-        print('Кнопка для развертывания описания Shorts не найдена!')
+    click_element(driver, css_selectors['shorts_menu_button'])
+    click_element(driver, css_selectors['shorts_description_button'])
+    click_element(driver, css_selectors['shorts_more_button'])
 
 def get_shorts_description(driver, css_selectors):
-    open_shorts_description(driver, css_selectors)
-    try:
-        description_element = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, css_selectors['shorts_description']))
-        )
-        description = description_element.text.strip()
-        return description
-    except TimeoutException:
-        return 'Описание к Shorts не найдено!'
-    except Exception as e:
-        print(f'Произошла ошибка при сборе описания к Shorts')
+    selectors = ['shorts_description_1', 'shorts_description_2']
+    for selector in selectors:
+        try:
+            description_element = WebDriverWait(driver, 1).until(
+                EC.visibility_of_element_located((By.CSS_SELECTOR, css_selectors[selector]))
+            )
+            description_text = description_element.text.strip()
+            if description_text:
+                return description_text
+        except TimeoutException:
+            pass
+        except Exception as e:
+            print(f'Произошла ошибка при сборе описания к Shorts')
+
+    return 'Описание Shorts не найдено'
 
 def get_shorts_views(driver, css_selectors):
     try:
@@ -195,22 +201,38 @@ def get_shorts_views(driver, css_selectors):
 
 def get_shorts_release_date(driver, css_selectors):
     try:
-        month_day_element = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, css_selectors['shorts_month_day']))
+        month_day_element = WebDriverWait(driver, 0.5).until(
+            EC.visibility_of_element_located((By.CSS_SELECTOR, css_selectors['shorts_month_day']))
         )
         month_day = month_day_element.text.strip()
 
-        year_element = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, css_selectors['shorts_year']))
+        year_element = WebDriverWait(driver, 0.5).until(
+            EC.visibility_of_element_located((By.CSS_SELECTOR, css_selectors['shorts_year']))
         )
         year = year_element.text.strip()
 
-        return month_day + ' ' + year + ' г.'
+        if month_day and year:
+            return f'{month_day} {year} г.'
+
     except TimeoutException:
-        print('Дата релиза Shorts не найдена')
-        return 'Дата релиза Shorts не найдена'
-    except Exception as e:
-        print(f'Произошла ошибка при сборе даты релиза Shorts')
+        try:
+            hours_ago_element = WebDriverWait(driver, 0.5).until(
+                EC.visibility_of_element_located((By.CSS_SELECTOR, css_selectors['shorts_hours_ago_1']))
+            )
+            hours_ago = hours_ago_element.text.strip()
+
+            ago_element = WebDriverWait(driver, 0.5).until(
+                EC.visibility_of_element_located((By.CSS_SELECTOR, css_selectors['shorts_hours_ago_2']))
+            )
+            ago = ago_element.text.strip()
+
+            if hours_ago and ago:
+                return f'{hours_ago} {ago}'
+        except TimeoutException:
+            print('Не удалось найти дату релиза для Shorts!')
+            return 'Дата релиза Shorts не найдена!'
+
+    return 'Дата релиза Shorts не найдена'
 
 
 def scraping_info_from_videos(driver, css_selectors, input_filename, selected_data, video_functions, shorts_functions):
@@ -220,7 +242,13 @@ def scraping_info_from_videos(driver, css_selectors, input_filename, selected_da
         driver.get(video['urls'])
         time.sleep(2)
 
-        functions = video_functions if video['type'] == 'Video' else shorts_functions
+        if video['type'] == 'Video':
+            functions = video_functions
+        elif video['type'] == 'Shorts':
+            functions = shorts_functions
+        else:
+            continue
+
         collected_data = {}
         for key in selected_data:
             collected_data[key] = functions[key](driver, css_selectors)
@@ -235,8 +263,8 @@ def scraping_info_from_videos(driver, css_selectors, input_filename, selected_da
     return video_data
 
 video_scraper_functions = {
-    'description': get_video_description,
     'title': get_video_title,
+    'description': get_video_description,
     'release_date': get_video_release_date,
     'views': get_video_views,
     'likes': get_video_likes,
@@ -244,8 +272,8 @@ video_scraper_functions = {
 }
 
 shorts_scraper_functions = {
-    'description': get_shorts_description,
     'title': get_shorts_title,
+    'description': get_shorts_description,
     'release_date': get_shorts_release_date,
     'views': get_shorts_views,
     'likes': get_shorts_likes,

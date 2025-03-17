@@ -7,6 +7,7 @@
   "channel_info": "#channel-info",
   "channel_url": "#channel-thumbnail",
   "shorts_checker": "#overlays > ytd-thumbnail-overlay-time-status-renderer > div.thumbnail-overlay-badge-shape.style-scope.ytd-thumbnail-overlay-time-status-renderer > badge-shape > div.badge-shape-wiz__icon",
+  "live_checker": ".badge-style-type-live-now-alternate",
 
   "video_title": "#title > h1 > yt-formatted-string",
   "likes": "button[aria-label^=\"Видео понравилось вам и ещё\"]",
@@ -16,13 +17,19 @@
   "video_views": "#info > span:nth-child(1)",
   "video_release_date": "#info > span:nth-child(3)",
 
-  "shorts_title": "#title",
+
+  "shorts_title_1": "#title > yt-formatted-string > span",
+  "shorts_title_2": "#metapanel > yt-reel-metapanel-view-model > div:nth-child(2) > yt-shorts-video-title-view-model > h2 > span",
   "shorts_comments": "#comments-button > ytd-button-renderer > yt-button-shape > label > div",
   "shorts_likes": "#factoids > factoid-renderer:nth-child(1) > div > span.ytwFactoidRendererValue",
   "shorts_menu_button": "#button-shape > button > div",
   "shorts_description_button": "#items > ytd-menu-service-item-renderer",
-  "shorts_description": "#formatted-snippet-text",
+  "shorts_more_button": "#expand",
+  "shorts_description_1": "#snippet",
+  "shorts_description_2": "#inline-expander > yt-formatted-string",
   "shorts_views": "#factoids > view-count-factoid-renderer > factoid-renderer > div > span.ytwFactoidRendererValue > span",
+  "shorts_hours_ago_1": "#factoids > upload-time-factoid-renderer > factoid-renderer > div > span.ytwFactoidRendererValue > span",
+  "shorts_hours_ago_2": "#factoids > upload-time-factoid-renderer > factoid-renderer > div > span.ytwFactoidRendererLabel > span",
   "shorts_month_day": "#factoids > factoid-renderer:nth-child(3) > div > span.ytwFactoidRendererValue",
   "shorts_year": "#factoids > factoid-renderer:nth-child(3) > div > span.ytwFactoidRendererLabel"
 }
