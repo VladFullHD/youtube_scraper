@@ -114,7 +114,7 @@ def get_release_dates_from_search(video_elements, release_date_css):
     release_dates = []
     for video_element in video_elements:
         try:
-            release_date_element = WebDriverWait(video_element, 5).until(
+            release_date_element = WebDriverWait(video_element, 1).until(
                 EC.presence_of_element_located((By.CSS_SELECTOR, release_date_css['release_date']))
             )
             release_date = release_date_element.text.strip()
@@ -228,25 +228,37 @@ def info_settings_input(driver, functions):
 
     return selected_data
 
-def shorts_checker(video_elements, css_selectors):
-    shorts = []
+
+def video_type_checker(video_elements, css_selectors):
+    video_types = []
+
     for video_element in video_elements:
         try:
-            shorts_element = WebDriverWait(video_element, 0.5).until(
-                EC.presence_of_element_located((By.CSS_SELECTOR, css_selectors['shorts_checker']))
-            )
-            if shorts_element:
-                shorts.append('Shorts')
+            if WebDriverWait(video_element, 3).until(
+                    EC.presence_of_element_located((By.CSS_SELECTOR, css_selectors['shorts_checker']))
+            ):
+                video_types.append('Shorts')
+                continue
         except TimeoutException:
-            shorts.append('Video')
-        except Exception as e:
-            print(f'Произошла ошибка при сборе заголовков видео: {e}')
-    return shorts
+            pass
+
+        try:
+            if WebDriverWait(video_element, 3).until(
+                    EC.presence_of_element_located((By.CSS_SELECTOR, css_selectors['live_checker']))
+            ):
+                video_types.append('Live')
+                continue
+        except TimeoutException:
+            pass
+
+        video_types.append('Video')
+
+    return video_types
 
 search_scraper_functions = {
     "names": get_titles_from_search,
     "urls": get_urls_from_search,
-    "type": shorts_checker,
+    "type": video_type_checker,
     "views": get_views_from_search,
     "release_dates": get_release_dates_from_search,
     "channel_names": get_channel_names_from_search,
