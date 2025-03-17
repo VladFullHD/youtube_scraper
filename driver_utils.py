@@ -25,6 +25,7 @@ def setup_options_webdriver(use_proxy=False, proxy=None):
     )
     options.add_argument("--disable-webrtc")
     options.add_argument("--disable-blink-features=AutomationControlled")
+    options.add_argument('--mute-audio')
 
     driver = uc.Chrome(options=options)
     driver.maximize_window()
