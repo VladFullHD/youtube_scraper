@@ -1,7 +1,8 @@
 import undetected_chromedriver as uc
+from selenium.webdriver.common.keys import Keys
 import time
 
-def scroll_to_bottom(driver):
+def scroll_javascript(driver):
     """Плавная прокрутка страницы вниз"""
     last_height = driver.execute_script("return document.body.scrollHeight")
     while True:
@@ -9,6 +10,18 @@ def scroll_to_bottom(driver):
         time.sleep(1.5)
         new_height = driver.execute_script("return document.body.scrollHeight")
         if new_height == last_height:
+            break
+        last_height = new_height
+
+def scroll_selenium_keys(driver):
+    body = driver.find_element('tag name', 'body')
+    last_height = driver.execute_script('return window.pageYOffset;')
+    while True:
+        body.send_keys(Keys.PAGE_DOWN)
+        time.sleep(1)
+        new_height = driver.execute_script('return window.pageYOffset;')
+        if new_height == last_height:
+            print('Страница прокручена до конца!')
             break
         last_height = new_height
 
