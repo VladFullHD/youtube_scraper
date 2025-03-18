@@ -8,6 +8,7 @@
   "channel_url": "#channel-thumbnail",
   "shorts_checker": "#overlays > ytd-thumbnail-overlay-time-status-renderer > div.thumbnail-overlay-badge-shape.style-scope.ytd-thumbnail-overlay-time-status-renderer > badge-shape > div.badge-shape-wiz__icon",
   "live_checker": ".badge-style-type-live-now-alternate",
+  "preview_image_url": "img.yt-core-image",
 
   "video_title": "#title > h1 > yt-formatted-string",
   "likes": "button[aria-label^=\"Видео понравилось вам и ещё\"]",
