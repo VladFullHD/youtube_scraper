@@ -1,6 +1,6 @@
 import re
 import time
-from selenium.common import TimeoutException
+from selenium.common import TimeoutException, NoSuchElementException
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
 from driver_utils import setup_options_webdriver
@@ -20,6 +20,12 @@ def click_element(driver, css_selector, timeout=2):
     except TimeoutException:
         pass
 
+def is_video_unavailable(driver, css_selector):
+    try:
+        unavailable_element = driver.find_element(By.CSS_SELECTOR, css_selector['is_video_unavailable'])
+        return True
+    except NoSuchElementException:
+        return False
 
 def open_video_description(driver, css_selectors):
     try:
@@ -34,64 +40,71 @@ def open_video_description(driver, css_selectors):
 def get_video_description(driver, css_selectors):
     open_video_description(driver, css_selectors)
     try:
-        description_element = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, css_selectors['description']))
-        )
-        description = description_element.text.strip()
-        return description
-    except TimeoutException:
+        description_element = driver.find_element(By.CSS_SELECTOR, css_selectors['description'])
+        return description_element.text.strip()
+    except NoSuchElementException:
+        print('Описание к Video не найдено!')
         return 'Описание к Video не найдено!'
     except Exception as e:
         print(f'Произошла ошибка при сборе описания к Video: {e}')
 
 def get_video_likes(driver, css_selectors):
     try:
-        like_element = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, css_selectors['likes']))
-        )
+        like_element = driver.find_element(By.CSS_SELECTOR, css_selectors['likes'])
         aria_label = like_element.get_attribute("aria-label")
-        match = re.search(r"и ещё ([\d\s\xa0]+)", aria_label)
-        if match:
-            likes_str = match.group(1).replace("\xa0", "").replace(" ", "")
-            if "тыс" in aria_label:
-                likes = int(likes_str) * 1000
-            elif "млн" in aria_label:
-                likes = int(likes_str) * 1000000
+        if aria_label:
+            if 'одному пользователю' in aria_label:
+                return '0'
             else:
-                likes = int(likes_str)
+                match = re.search(r"и ещё ([\d\s\xa0]+)", aria_label)
+                if match:
+                    likes_str = match.group(1).replace("\xa0", "").replace(" ", "")
+                    if "тыс" in aria_label:
+                        likes = int(likes_str) * 1000
+                    elif "млн" in aria_label:
+                        likes = int(likes_str) * 1000000
+                    else:
+                        likes = int(likes_str)
 
-            # Форматирование числа с разделителями тысяч
-            formatted_likes = "{:,}".format(likes).replace(",", ".")
-
-            return formatted_likes
-    except TimeoutException:
-        return 'Количество лайков в видео не найдено!'
+                    formatted_likes = "{:,}".format(likes).replace(",", ".")
+                    return formatted_likes
+    except NoSuchElementException:
+        print('Количество лайков в Video не найдено!')
+        return 'Количество лайков в Video не найдено!'
     except Exception as e:
         print(f"Ошибка при извлечении лайков: {e}")
         return None
 
 def get_video_comments(driver, css_selectors):
-    while True:
+    max_attempts = 10
+    attempts = 0
+    try:
         try:
-            video_comments_element = WebDriverWait(driver, 2).until(
-                EC.presence_of_element_located((By.CSS_SELECTOR, css_selectors['comments']))
-            )
-            video_comments = video_comments_element.text.strip()
-            return video_comments
-        except TimeoutException:
-            driver.find_element("tag name", 'html').send_keys(Keys.PAGE_DOWN)
-            time.sleep(0.2)
-        except Exception as e:
-            print(f'Произошла ошибка при сборе количества комментариев к видео: {e}')
+            driver.find_element(By.CSS_SELECTOR, css_selectors['comments_turned_off'])
+            print('Комментарии отключены!')
+            return 'Комментарии отключены!'
+        except NoSuchElementException:
+            while attempts < max_attempts:
+                try:
+                    video_comments_element = WebDriverWait(driver, 2).until(
+                        EC.presence_of_element_located((By.CSS_SELECTOR, css_selectors['comments']))
+                    )
+                    return video_comments_element.text.strip()
+                except TimeoutException:
+                    attempts += 1
+                    print('Количество комментариев в Video не найдено. Листаю страницу вниз...')
+                    driver.find_element("tag name", 'html').send_keys(Keys.PAGE_DOWN)
+                    time.sleep(0.2)
+            print('Достигнуто максимальное количество попыток поиска комментариев')
+    except Exception as e:
+        print(f'Произошла ошибка при сборе количества комментариев к видео: {e}')
 
 def get_video_views(driver, css_selectors):
     try:
-        views_element = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, css_selectors['video_views']))
-        )
+        views_element = driver.find_element(By.CSS_SELECTOR, css_selectors['video_views'])
         views = views_element.text.strip()
         return views
-    except TimeoutException:
+    except NoSuchElementException:
         print('Количество просмотров Video не найдено')
         return 'Количество просмотров Video не найдено'
     except Exception as e:
@@ -99,12 +112,10 @@ def get_video_views(driver, css_selectors):
 
 def get_video_release_date(driver, css_selectors):
     try:
-        release_date_element = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, css_selectors['video_release_date']))
-        )
+        release_date_element = driver.find_element(By.CSS_SELECTOR, css_selectors['video_release_date'])
         release_date = release_date_element.text.strip()
         return release_date
-    except TimeoutException:
+    except NoSuchElementException:
         print('Дата релиза Video не найдена')
         return 'Дата релиза Video не найдена'
     except Exception as e:
@@ -112,13 +123,11 @@ def get_video_release_date(driver, css_selectors):
 
 def get_video_title(driver, css_selectors):
     try:
-        video_title_element = WebDriverWait(driver, 5).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, css_selectors['video_title']))
-        )
+        video_title_element = driver.find_element(By.CSS_SELECTOR, css_selectors['video_title'])
         video_title = video_title_element.text.strip()
-        print(video_title)
         return video_title
-    except TimeoutException:
+    except NoSuchElementException:
+        print('Название Video не найдено!')
         return 'Название Video не найдено!'
     except Exception as e:
         print(f'Произошла ошибка при сборе названия Video: {e}')
@@ -126,40 +135,40 @@ def get_video_title(driver, css_selectors):
 
 def get_shorts_title(driver, css_selectors):
     open_shorts_description(driver, css_selectors)
-    selectors = ['shorts_title_1', 'shorts_title_2']
+    selectors = ['shorts_title_1', 'shorts_title_2', 'shorts_title_3']
     for selector in selectors:
         try:
-            shorts_title_element = WebDriverWait(driver, 2).until(
+            shorts_title_element = WebDriverWait(driver, 0.5).until(
                 EC.presence_of_element_located((By.CSS_SELECTOR, css_selectors[selector]))
             )
             return shorts_title_element.text.strip()
         except TimeoutException:
-            pass
+            print('Не удалось найти название Shorts. Пробую с помощью другого селектора...')
         except Exception as e:
             print(f'Произошла ошибка при сборе названия Shorts: {e}')
 
+    print('Название Shorts не найдено')
     return 'Название Shorts не найдено'
 
 def get_shorts_likes(driver, css_selectors):
     try:
-        shorts_likes_element = WebDriverWait(driver, 5).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, css_selectors['shorts_likes']))
-        )
+        shorts_likes_element = driver.find_element(By.CSS_SELECTOR, css_selectors['shorts_likes'])
         shorts_likes = shorts_likes_element.text.strip()
-        return shorts_likes
-    except TimeoutException:
+        if shorts_likes == '–':
+            return '0'
+        else:
+            return shorts_likes
+    except NoSuchElementException:
         return 'Количество лайков Shorts не найдено!'
     except Exception as e:
         print(f'Произошла ошибка при сборе количества лайков Shorts: {e}')
 
 def get_shorts_comments(driver, css_selectors):
     try:
-        shorts_comments_element = WebDriverWait(driver, 5).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, css_selectors['shorts_comments']))
-        )
+        shorts_comments_element = driver.find_element(By.CSS_SELECTOR, css_selectors['shorts_comments'])
         shorts_comments = shorts_comments_element.text.strip()
         return shorts_comments
-    except TimeoutException:
+    except NoSuchElementException:
         return 'Количество комментариев к Shorts не найдено!'
     except Exception as e:
         print(f'Произошла ошибка при сборе комментариев в Shorts: {e}')
@@ -173,7 +182,7 @@ def get_shorts_description(driver, css_selectors):
     selectors = ['shorts_description_1', 'shorts_description_2']
     for selector in selectors:
         try:
-            description_element = WebDriverWait(driver, 1).until(
+            description_element = WebDriverWait(driver, 0.5).until(
                 EC.visibility_of_element_located((By.CSS_SELECTOR, css_selectors[selector]))
             )
             description_text = description_element.text.strip()
@@ -188,13 +197,10 @@ def get_shorts_description(driver, css_selectors):
 
 def get_shorts_views(driver, css_selectors):
     try:
-        views_element = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, css_selectors['shorts_views']))
-        )
+        views_element = driver.find_element(By.CSS_SELECTOR, css_selectors['shorts_views'])
         views = views_element.text.strip()
         return views
-    except TimeoutException:
-        print('Количество просмотров Shorts не найдено')
+    except NoSuchElementException:
         return 'Количество просмотров Shorts не найдено'
     except Exception as e:
         print(f'Произошла ошибка при сборе количества просмотров Shorts')
@@ -235,14 +241,36 @@ def get_shorts_release_date(driver, css_selectors):
     return 'Дата релиза Shorts не найдена'
 
 
-def scraping_info_from_videos(driver, css_selectors, input_filename, selected_data, video_functions, shorts_functions):
+def scraping_info_from_videos(
+        driver,
+        css_selectors,
+        input_filename,
+        selected_data,
+        video_functions,
+        shorts_functions
+):
+
     input_data = load_json_file(input_filename)
     video_data = []
-    for video in input_data:
-        driver.get(video['urls'])
-        time.sleep(2)
+    total_videos = len(input_data)
+    for video_number, video in enumerate(input_data, 1):
+        print(f'Обработка видео {video_number} из {total_videos}...\n')
+        driver.get(video['url'])
+        time.sleep(1)
+
+        video_info = {
+            'url': video['url'],
+            'type': video['type'],
+        }
 
         if video['type'] == 'Video':
+            if is_video_unavailable(driver, css_selectors):
+                print('Video недоступно!')
+                video_info['status'] = 'Видео удалено/недоступно'
+                video_data.append(video_info)
+                continue
+            else:
+                print('Video доступно')
             functions = video_functions
         elif video['type'] == 'Shorts':
             functions = shorts_functions
@@ -253,12 +281,7 @@ def scraping_info_from_videos(driver, css_selectors, input_filename, selected_da
         for key in selected_data:
             collected_data[key] = functions[key](driver, css_selectors)
 
-        video_info = {
-            'urls': video['urls'],
-            'type': video['type']
-        }
         video_info.update(collected_data)
-
         video_data.append(video_info)
     return video_data
 
@@ -289,7 +312,7 @@ def main():
     selected_data = info_settings_input(driver, shorts_functions)
 
     video_data = scraping_info_from_videos(driver, css_selectors, 'video_data.json', selected_data, video_functions, shorts_functions)
-    save_json_file(video_data, 'main_data.json')
+    save_json_file(video_data, 'test_main_data.json')
 
     input('Нажмите Enter, чтобы закрыть драйвер!')
     driver.quit()

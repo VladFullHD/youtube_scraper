@@ -13,14 +13,17 @@
   "video_title": "#title > h1 > yt-formatted-string",
   "likes": "button[aria-label^=\"Видео понравилось вам и ещё\"]",
   "description_button": "#expand",
-  "description": "#description-inline-expander > yt-attributed-string",
+  "description": "#description-inline-expander > yt-attributed-string > span",
   "comments": "#count > yt-formatted-string",
   "video_views": "#info > span:nth-child(1)",
   "video_release_date": "#info > span:nth-child(3)",
+  "comments_turned_off": "#message",
+  "is_video_unavailable": "#contents > ytd-background-promo-renderer > div.promo-message.style-scope.ytd-background-promo-renderer > div",
 
 
   "shorts_title_1": "#title > yt-formatted-string > span",
   "shorts_title_2": "#metapanel > yt-reel-metapanel-view-model > div:nth-child(2) > yt-shorts-video-title-view-model > h2 > span",
+  "shorts_title_3": "#metapanel > yt-reel-metapanel-view-model > div:nth-child(3) > yt-shorts-video-title-view-model > h2 > span",
   "shorts_comments": "#comments-button > ytd-button-renderer > yt-button-shape > label > div",
   "shorts_likes": "#factoids > factoid-renderer:nth-child(1) > div > span.ytwFactoidRendererValue",
   "shorts_menu_button": "#button-shape > button > div",
