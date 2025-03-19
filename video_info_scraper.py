@@ -8,7 +8,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from file_utils import save_json_file, load_json_file
-from search_info_scraper import info_settings_input
+
 
 def click_element(driver, css_selector, timeout=2):
     try:
@@ -135,7 +135,7 @@ def get_video_title(driver, css_selectors):
 
 def get_shorts_title(driver, css_selectors):
     open_shorts_description(driver, css_selectors)
-    selectors = ['shorts_title_1', 'shorts_title_2', 'shorts_title_3']
+    selectors = ['shorts_title_1', 'shorts_title_2', 'shorts_title_3', 'shorts_title_4']
     for selector in selectors:
         try:
             shorts_title_element = WebDriverWait(driver, 0.5).until(
@@ -241,29 +241,64 @@ def get_shorts_release_date(driver, css_selectors):
     return 'Дата релиза Shorts не найдена'
 
 
+def info_from_user():
+    print('Выберите тип видео:\n1. Video\n2. Shorts')
+    choice = input('Введите 1 или 2: ')
+
+    if choice == '1':
+        scraper_functions = video_scraper_functions
+        video_type = 'Video'
+    elif choice == '2':
+        scraper_functions = shorts_scraper_functions
+        video_type = 'Shorts'
+    else:
+        print('Некорректный выбор!')
+        exit()
+
+    available_info = list(scraper_functions.keys())
+    print('Выберите, какую информацию требуется собрать:')
+    for i, function in enumerate(available_info):
+        print(f'{i + 1}. {function}')
+
+    selected_numbers = input('Введите номера для сбора желаемой информации через пробел: ')
+    selected_numbers = [int(i) - 1 for i in selected_numbers.split()]
+    selected_info = [available_info[i] for i in selected_numbers]
+    return video_type, selected_info, scraper_functions
+
 def scraping_info_from_videos(
         driver,
         css_selectors,
         input_filename,
-        selected_data,
-        video_functions,
-        shorts_functions
+        selected_info,
+        scraper_functions,
+        video_type
 ):
 
     input_data = load_json_file(input_filename)
+    filtered_data = [video for video in input_data if video['type'] == video_type]
+
+    if not filtered_data:
+        print(f'Видео типа "{video_type} не найдены в файле!')
+        return []
+
     video_data = []
-    total_videos = len(input_data)
-    for video_number, video in enumerate(input_data, 1):
+    total_videos = len(filtered_data)
+    for video_number, video in enumerate(filtered_data, 1):
         print(f'Обработка видео {video_number} из {total_videos}...\n')
         driver.get(video['url'])
         time.sleep(1)
 
         video_info = {
-            'url': video['url'],
-            'type': video['type'],
+            'title': None,
+            'views': None,
+            'likes': None,
+            'comments': None,
+            'release_date': None,
+            'url': None,
+            'description': None,
         }
 
-        if video['type'] == 'Video':
+        if scraper_functions == video_scraper_functions:
             if is_video_unavailable(driver, css_selectors):
                 print('Video недоступно!')
                 video_info['status'] = 'Видео удалено/недоступно'
@@ -271,15 +306,10 @@ def scraping_info_from_videos(
                 continue
             else:
                 print('Video доступно')
-            functions = video_functions
-        elif video['type'] == 'Shorts':
-            functions = shorts_functions
-        else:
-            continue
 
         collected_data = {}
-        for key in selected_data:
-            collected_data[key] = functions[key](driver, css_selectors)
+        for key in selected_info:
+            collected_data[key] = scraper_functions[key](driver, css_selectors)
 
         video_info.update(collected_data)
         video_data.append(video_info)
@@ -291,7 +321,7 @@ video_scraper_functions = {
     'release_date': get_video_release_date,
     'views': get_video_views,
     'likes': get_video_likes,
-    'comments': get_video_comments
+    'comments': get_video_comments,
 }
 
 shorts_scraper_functions = {
@@ -307,11 +337,18 @@ def main():
     driver = setup_options_webdriver()
 
     css_selectors = load_json_file('css_selectors.json')
-    video_functions = video_scraper_functions
-    shorts_functions = shorts_scraper_functions
-    selected_data = info_settings_input(driver, shorts_functions)
 
-    video_data = scraping_info_from_videos(driver, css_selectors, 'video_data.json', selected_data, video_functions, shorts_functions)
+    video_type, selected_info, scraper_functions = info_from_user()
+
+    video_data = scraping_info_from_videos(
+        driver,
+        css_selectors,
+        'video_data.json',
+        selected_info,
+        scraper_functions,
+        video_type
+    )
+
     save_json_file(video_data, 'test_main_data.json')
 
     input('Нажмите Enter, чтобы закрыть драйвер!')
