@@ -99,8 +99,8 @@ def get_video_likes(driver, css_selectors):
 
     Returns:
         str или None: Количество лайков в виде строки с форматированием (например, '1.234.567'),
-                        или '0', если лайк один,
-                        или 'Количество лайков в Video не найдено!', если элемент не найден,
+                        или '0', если вместо числа мы получаем 'одному пользователю',
+                        или '0', если элемент не найден, так как это означает что лайков 0,
                         или None, если произошла другая ошибка.
     """
     try:
@@ -123,7 +123,7 @@ def get_video_likes(driver, css_selectors):
                     formatted_likes = "{:,}".format(likes).replace(",", ".")
                     return formatted_likes
     except NoSuchElementException:
-        return 'Количество лайков в Video не найдено!'
+        return '0'
     except Exception as e:
         print(f"Ошибка при извлечении лайков: {e}")
         return None
@@ -444,9 +444,13 @@ def info_from_user():
     for i, function in enumerate(available_info):
         print(f'{i + 1}. {function}')
 
-    selected_numbers = input('Введите номера для сбора желаемой информации через пробел: ')
-    selected_numbers = [int(i) - 1 for i in selected_numbers.split()]
-    selected_info = [available_info[i] for i in selected_numbers]
+    selected_numbers = input('Введите номера для сбора желаемой информации через пробел\n(или нажмите Enter для сбора всей информации): ')
+
+    if not selected_numbers:
+        selected_info = available_info
+    else:
+        selected_numbers = [int(i) - 1 for i in selected_numbers.split()]
+        selected_info = [available_info[i] for i in selected_numbers]
     return video_type, selected_info, scraper_functions
 
 def scraping_info_from_videos(
@@ -482,7 +486,7 @@ def scraping_info_from_videos(
     video_data = []
     total_videos = len(filtered_data)
     for video_number, video in enumerate(filtered_data, 1):
-        print(f'Обработка видео {video_number} из {total_videos}...\n')
+        print(f'\nОбработка видео {video_number} из {total_videos}...')
         driver.get(video['url'])
         time.sleep(1)
 

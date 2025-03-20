@@ -147,7 +147,7 @@ def get_views_from_search(video_elements, views_css):
             view = view_element.text.strip()
             if view:
                 if 'Планируемая дата публикации' in view:
-                    views.append(None)
+                    views.append('Не найдено!')
                 else:
                     views.append(view)
         except NoSuchElementException:
@@ -165,7 +165,7 @@ def get_release_dates_from_search(video_elements, release_date_css):
                 release_date_css (dict): Словарь с CSS-селектором для поиска даты выхода видеороликов.
 
             Returns:
-                list[str]: Список дат выхода видеороликов. В случае NoSuchElementException - 'Не найдено!'
+                list[str]: Список дат выхода видеороликов. В случае NoSuchElementException - None.
     """
     release_dates = []
     for video_element in video_elements:
@@ -361,7 +361,7 @@ def video_type_checker(video_elements, css_selectors):
         try:
             if re.search(r'/shorts/', url):
                 video_types.append('Shorts')
-            elif release_dates[i] is None:
+            elif 'Не найдено!' in release_dates[i]:
                 video_types.append('Live')
             else:
                 video_types.append('Video')
