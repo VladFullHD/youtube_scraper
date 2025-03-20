@@ -11,6 +11,17 @@ from file_utils import save_json_file, load_json_file
 
 
 def click_element(driver, css_selector, timeout=2):
+    """
+    Кликает на элемент веб-страницы, используя CSS-селектор.
+
+    Args:
+        driver (undetected_chromedriver.chrome.Chrome): Экземпляр веб-драйвера.
+        css_selector (str): CSS-селектор для поиска элемента.
+        timeout (int, optional): Максимальное время ожидания элемента в секундах. По умолчанию = 2.
+
+    Returns:
+        None
+    """
     try:
         element = WebDriverWait(driver, timeout).until(
             EC.visibility_of_element_located((By.CSS_SELECTOR, css_selector))
@@ -21,6 +32,16 @@ def click_element(driver, css_selector, timeout=2):
         pass
 
 def is_video_unavailable(driver, css_selector):
+    """
+    Проверяет, доступно ли видео на YouTube.
+
+    Args:
+        driver (undetected_chromedriver.chrome.Chrome): Экземпляр веб-драйвера.
+        css_selector (dict): Словарь с CSS-селектором для поиска элемента, указывающего на недоступность видео.
+
+    Returns:
+        bool: True, если видео недоступно, False в противном случае.
+    """
     try:
         unavailable_element = driver.find_element(By.CSS_SELECTOR, css_selector['is_video_unavailable'])
         return True
@@ -28,6 +49,16 @@ def is_video_unavailable(driver, css_selector):
         return False
 
 def open_video_description(driver, css_selectors):
+    """
+    Открывает описание видео на YouTube, кликая на кнопку 'Ещё'.
+
+    Args:
+        driver (undetected_chromedriver.chrome.Chrome): Экземпляр веб-драйвера.
+        css_selectors (dict): Словарь с CSS-селектором для кнопки "Ещё".
+
+    Returns:
+        None
+    """
     try:
         description_button = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.CSS_SELECTOR, css_selectors['description_button']))
@@ -38,6 +69,16 @@ def open_video_description(driver, css_selectors):
         print('Кнопка для развертывания описания Video не найдена!')
 
 def get_video_description(driver, css_selectors):
+    """
+    Извлекает описание видео с YouTube.
+
+    Args:
+        driver (undetected_chromedriver.chrome.Chrome): Экземпляр веб-драйвера.
+        css_selectors (dict): Словарь с CSS-селекторами для поиска описания.
+
+    Returns:
+        str: Текст описания видео. Если описание не найдено, возвращает 'Описание к Video не найдено!'.
+    """
     open_video_description(driver, css_selectors)
     try:
         description_element = driver.find_element(By.CSS_SELECTOR, css_selectors['description'])
@@ -49,6 +90,19 @@ def get_video_description(driver, css_selectors):
         print(f'Произошла ошибка при сборе описания к Video: {e}')
 
 def get_video_likes(driver, css_selectors):
+    """
+    Извлекает количество лайков видео с YouTube.
+
+    Args:
+        driver (undetected_chromedriver.chrome.Chrome): Экземпляр веб-драйвера.
+        css_selectors (dict): Словарь с CSS-селектором для поиска элемента с количеством лайков.
+
+    Returns:
+        str или None: Количество лайков в виде строки с форматированием (например, '1.234.567'),
+                        или '0', если лайк один,
+                        или 'Количество лайков в Video не найдено!', если элемент не найден,
+                        или None, если произошла другая ошибка.
+    """
     try:
         like_element = driver.find_element(By.CSS_SELECTOR, css_selectors['likes'])
         aria_label = like_element.get_attribute("aria-label")
@@ -69,19 +123,29 @@ def get_video_likes(driver, css_selectors):
                     formatted_likes = "{:,}".format(likes).replace(",", ".")
                     return formatted_likes
     except NoSuchElementException:
-        print('Количество лайков в Video не найдено!')
         return 'Количество лайков в Video не найдено!'
     except Exception as e:
         print(f"Ошибка при извлечении лайков: {e}")
         return None
 
 def get_video_comments(driver, css_selectors):
+    """
+    Извлекает количество комментариев к видео с YouTube.
+
+    Args:
+        driver (undetected_chromedriver.chrome.Chrome): Экземпляр веб-драйвера.
+        css_selectors (dict): Словарь с CSS-селекторами для поиска элемента с количеством комментариев.
+
+    Returns:
+        str или None: Количество комментариев в виде строки,
+                        или 'Комментарии отключены', если они отключены,
+                        или None, если произошла ошибка.
+    """
     max_attempts = 10
     attempts = 0
     try:
         try:
             driver.find_element(By.CSS_SELECTOR, css_selectors['comments_turned_off'])
-            print('Комментарии отключены!')
             return 'Комментарии отключены!'
         except NoSuchElementException:
             while attempts < max_attempts:
@@ -92,7 +156,6 @@ def get_video_comments(driver, css_selectors):
                     return video_comments_element.text.strip()
                 except TimeoutException:
                     attempts += 1
-                    print('Количество комментариев в Video не найдено. Листаю страницу вниз...')
                     driver.find_element("tag name", 'html').send_keys(Keys.PAGE_DOWN)
                     time.sleep(0.2)
             print('Достигнуто максимальное количество попыток поиска комментариев')
@@ -100,17 +163,40 @@ def get_video_comments(driver, css_selectors):
         print(f'Произошла ошибка при сборе количества комментариев к видео: {e}')
 
 def get_video_views(driver, css_selectors):
+    """
+    Извлекает количество просмотров видео с YouTube.
+
+    Args:
+        driver (undetected_chromedriver.chrome.Chrome): Экземпляр веб-драйвера.
+        css_selectors (dict): Словарь с CSS-селектором для поиска элемента с количеством просмотров.
+
+    Returns:
+        str или None: Количество просмотров в виде строки,
+                        или 'Количество просмотров Video не найдено', если элемент не найден,
+                        или None, если произошла другая ошибка.
+    """
     try:
         views_element = driver.find_element(By.CSS_SELECTOR, css_selectors['video_views'])
         views = views_element.text.strip()
         return views
     except NoSuchElementException:
-        print('Количество просмотров Video не найдено')
         return 'Количество просмотров Video не найдено'
     except Exception as e:
         print(f'Произошла ошибка при сборе количества просмотров Video')
 
 def get_video_release_date(driver, css_selectors):
+    """
+    Извлекает дату публикации видео с YouTube.
+
+    Args:
+        driver (undetected_chromedriver.chrome.Chrome): Экземпляр веб-драйвера.
+        css_selectors (dict): Словарь с CSS-селектором для поиска элемента с датой публикации.
+
+    Returns:
+        str или None: Дата публикации в виде строки,
+                        или 'Дата релиза Video не найдена', если элемент не найден,
+                        или None, если произошла другая ошибка.
+    """
     try:
         release_date_element = driver.find_element(By.CSS_SELECTOR, css_selectors['video_release_date'])
         release_date = release_date_element.text.strip()
@@ -122,6 +208,18 @@ def get_video_release_date(driver, css_selectors):
         print(f'Произошла ошибка при сборе даты релиза Video')
 
 def get_video_title(driver, css_selectors):
+    """
+    Извлекает заголовок видео с YouTube.
+
+    Args:
+         driver (undetected_chromedriver.chrome.Chrome): Экземпляр веб-драйвера.
+        css_selectors (dict): Словарь с CSS-селектором для поиска элемента с заголовком видео.
+
+    Returns:
+        str или None: Заголовок видео в виде строки,
+                        или 'Название Video не найдено!', если элемент не найден,
+                        или None, если произошла другая ошибка.
+    """
     try:
         video_title_element = driver.find_element(By.CSS_SELECTOR, css_selectors['video_title'])
         video_title = video_title_element.text.strip()
@@ -134,6 +232,18 @@ def get_video_title(driver, css_selectors):
 
 
 def get_shorts_title(driver, css_selectors):
+    """
+    Извлекает заголовок Shorts-видео с YouTube.
+
+    Args:
+        driver (undetected_chromedriver.chrome.Chrome): Экземпляр веб-драйвера.
+        css_selectors (dict): Словарь с CSS-селекторами для поиска элемента с заголовком Shorts.
+
+    Returns:
+        str или None: Заголовок Shorts-видео в виде строки,
+                     или 'Название Shorts не найдено', если элемент не найден,
+                     или None, если произошла другая ошибка.
+    """
     open_shorts_description(driver, css_selectors)
     selectors = ['shorts_title_1', 'shorts_title_2', 'shorts_title_3', 'shorts_title_4']
     for selector in selectors:
@@ -151,6 +261,19 @@ def get_shorts_title(driver, css_selectors):
     return 'Название Shorts не найдено'
 
 def get_shorts_likes(driver, css_selectors):
+    """
+    Извлекает количество лайков Shorts-видео с YouTube.
+
+    Args:
+        driver (undetected_chromedriver.chrome.Chrome): Экземпляр веб-драйвера.
+        css_selectors (dict): Словарь с CSS-селектором для поиска элемента с количеством лайков Shorts.
+
+    Returns:
+        str или None: Количество лайков Shorts-видео в виде строки,
+                     или '0', если лайки отображаются как '–',
+                     или 'Количество лайков Shorts не найдено!', если элемент не найден,
+                     или None, если произошла другая ошибка.
+    """
     try:
         shorts_likes_element = driver.find_element(By.CSS_SELECTOR, css_selectors['shorts_likes'])
         shorts_likes = shorts_likes_element.text.strip()
@@ -164,6 +287,18 @@ def get_shorts_likes(driver, css_selectors):
         print(f'Произошла ошибка при сборе количества лайков Shorts: {e}')
 
 def get_shorts_comments(driver, css_selectors):
+    """
+    Извлекает количество комментариев Shorts-видео с YouTube.
+
+    Args:
+        driver (undetected_chromedriver.chrome.Chrome): Экземпляр веб-драйвера.
+        css_selectors (dict): Словарь с CSS-селектором для поиска элемента с количеством комментариев Shorts.
+
+    Returns:
+        str или None: Количество комментариев Shorts-видео в виде строки,
+                     или 'Количество комментариев к Shorts не найдено!', если элемент не найден,
+                     или None, если произошла другая ошибка.
+    """
     try:
         shorts_comments_element = driver.find_element(By.CSS_SELECTOR, css_selectors['shorts_comments'])
         shorts_comments = shorts_comments_element.text.strip()
@@ -174,11 +309,31 @@ def get_shorts_comments(driver, css_selectors):
         print(f'Произошла ошибка при сборе комментариев в Shorts: {e}')
 
 def open_shorts_description(driver, css_selectors):
+    """
+    Открывает описание Shorts-видео на YouTube, кликая на необходимые кнопки.
+
+    Args:
+        driver (undetected_chromedriver.chrome.Chrome): Экземпляр веб-драйвера.
+        css_selectors (dict): Словарь с CSS-селекторами для кнопок открытия описания.
+
+    Returns:
+        None
+    """
     click_element(driver, css_selectors['shorts_menu_button'])
     click_element(driver, css_selectors['shorts_description_button'])
     click_element(driver, css_selectors['shorts_more_button'])
 
 def get_shorts_description(driver, css_selectors):
+    """
+    Извлекает описание Shorts-видео с YouTube.
+
+    Args:
+        driver (undetected_chromedriver.chrome.Chrome): Экземпляр веб-драйвера.
+        css_selectors (dict): Словарь с CSS-селекторами для поиска элементов описания.
+
+    Returns:
+        str: Текст описания Shorts-видео или 'Описание Shorts не найдено', если описание не найдено.
+    """
     selectors = ['shorts_description_1', 'shorts_description_2']
     for selector in selectors:
         try:
@@ -196,6 +351,16 @@ def get_shorts_description(driver, css_selectors):
     return 'Описание Shorts не найдено'
 
 def get_shorts_views(driver, css_selectors):
+    """
+    Извлекает количество просмотров Shorts-видео с YouTube.
+
+    Args:
+        driver (undetected_chromedriver.chrome.Chrome): Экземпляр веб-драйвера.
+        css_selectors (dict): Словарь с CSS-селектором для поиска элемента с количеством просмотров.
+
+    Returns:
+        str: Количество просмотров Shorts-видео или 'Количество просмотров Shorts не найдено', если элемент не найден.
+    """
     try:
         views_element = driver.find_element(By.CSS_SELECTOR, css_selectors['shorts_views'])
         views = views_element.text.strip()
@@ -206,6 +371,16 @@ def get_shorts_views(driver, css_selectors):
         print(f'Произошла ошибка при сборе количества просмотров Shorts')
 
 def get_shorts_release_date(driver, css_selectors):
+    """
+    Извлекает дату публикации Shorts-видео с YouTube.
+
+    Args:
+        driver (undetected_chromedriver.chrome.Chrome): Экземпляр веб-драйвера.
+        css_selectors (dict): Словарь с CSS-селекторами для поиска элементов даты публикации.
+
+    Returns:
+        str: Дата публикации Shorts-видео или 'Дата релиза Shorts не найдена', если дата не найдена.
+    """
     try:
         month_day_element = WebDriverWait(driver, 0.5).until(
             EC.visibility_of_element_located((By.CSS_SELECTOR, css_selectors['shorts_month_day']))
@@ -242,6 +417,15 @@ def get_shorts_release_date(driver, css_selectors):
 
 
 def info_from_user():
+    """
+    Запрашивает у пользователя тип видео и информацию для сбора.
+
+    Returns:
+        tuple[str, list[str], dict[str, Callable]]: Кортеж, содержащий:
+            - Тип видео ('Video' или 'Shorts').
+            - Список выбранных пользователем параметров для сбора данных.
+            - Словарь функций для сбора данных.
+    """
     print('Выберите тип видео:\n1. Video\n2. Shorts')
     choice = input('Введите 1 или 2: ')
 
@@ -273,7 +457,21 @@ def scraping_info_from_videos(
         scraper_functions,
         video_type
 ):
+    """
+    Собирает информацию о видеороликах из JSON-файла, применяя заданные функции сбора данных.
 
+    Args:
+        driver (undetected_chromedriver.chrome.Chrome): Экземпляр веб-драйвера.
+        css_selectors (dict): Словарь с CSS-селекторами для поиска элементов видеороликов.
+        input_filename (str): Имя JSON-файла с данными о видеороликах.
+        selected_info (list[str]): Список ключей функций для сбора данных.
+        scraper_functions (dict[str, Callable]): Словарь функций для сбора данных.
+        video_type (str): Тип видеороликов для фильтрации ('Video' или 'Shorts').
+
+    Returns:
+        list[dict]: Список словарей, где каждый словарь содержит информацию об одном видеоролике.
+                   Возвращает пустой список, если видеоролики заданного типа не найдены.
+    """
     input_data = load_json_file(input_filename)
     filtered_data = [video for video in input_data if video['type'] == video_type]
 
@@ -294,7 +492,7 @@ def scraping_info_from_videos(
             'likes': None,
             'comments': None,
             'release_date': None,
-            'url': None,
+            'url': video['url'],
             'description': None,
         }
 

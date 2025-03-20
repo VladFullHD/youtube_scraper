@@ -31,6 +31,15 @@ def search_input(driver):
         print(f'Произошла ошибка при вводе текста в поисковую строку: {e}')
 
 def filter_settings(driver, filter_names):
+    """
+    Устанавливает фильтр и/или сортировку в поисковой строке YouTube.
+    Args:
+        driver (undetected_chromedriver.chrome.Chrome): Экземпляр веб-драйвера.
+        filter_names (list[str]): Список строк, представляющих имена фильтров.
+
+    Returns:
+        None
+    """
     filters = load_json_file('filters.json')
     try:
         for filter_name in filter_names:
@@ -52,6 +61,16 @@ def filter_settings(driver, filter_names):
         print(f'Произошла ошибка при выборе фильтра: {e}')
 
 def get_all_elements_from_search(driver, all_videos_css):
+    """
+    Собирает все HTML-элементы видеороликов со страницы результатов поиска YouTube.
+
+    Args:
+        driver (undetected_chromedriver.chrome.Chrome): Экземпляр веб-драйвера.
+        all_videos_css (dict): Словарь с CSS-селекторами для поиска элементов видеороликов.
+
+    Returns:
+        list или None: Список найденных HTML-элементов видеороликов или None в случае ошибки.
+    """
     try:
         print('Начинаю сбор всего HTML-кода страницы!')
         videos_elements = WebDriverWait(driver, 10).until(
@@ -63,6 +82,16 @@ def get_all_elements_from_search(driver, all_videos_css):
         return None
 
 def get_titles_from_search(video_elements, title_css):
+    """
+    Извлекает заголовки видеороликов из списка HTML-элементов.
+
+    Args:
+        video_elements (list[WebElement]): Список HTML-элементов видеороликов.
+        title_css (dict): Словарь с CSS-селектором для поиска заголовков.
+
+    Returns:
+        list[str]: Список заголовков видеороликов. В случае NoSuchElementException - 'Не найдено!'.
+    """
     titles = []
     for video_element in video_elements:
         try:
@@ -77,6 +106,16 @@ def get_titles_from_search(video_elements, title_css):
     return titles
 
 def get_urls_from_search(video_elements, url_css):
+    """
+    Извлекает URL-адреса видеороликов из списка HTML-элементов.
+
+    Args:
+        video_elements (list[WebElement]): Список HTML-элементов видеороликов.
+        url_css (dict): Словарь с CSS-селектором для поиска URL-адресов.
+
+    Returns:
+        list[str]: Список URL-адресов видеороликов. В случае NoSuchElementException - 'Не найдено!'.
+    """
     video_urls = []
     for video_element in video_elements:
         try:
@@ -91,6 +130,16 @@ def get_urls_from_search(video_elements, url_css):
     return video_urls
 
 def get_views_from_search(video_elements, views_css):
+    """
+    Извлекает количество просмотров в видеороликах из списка HTML-элементов.
+
+    Args:
+        video_elements (list[WebElement]): Список HTML-элементов видеороликов.
+        views_css (dict): Словарь с CSS-селектором для поиска количества просмотров.
+
+    Returns:
+        list[str]: Список количества просмотров в видеороликах. В случае NoSuchElementException - 'Не найдено!'
+    """
     views = []
     for video_element in video_elements:
         try:
@@ -108,6 +157,16 @@ def get_views_from_search(video_elements, views_css):
     return views
 
 def get_release_dates_from_search(video_elements, release_date_css):
+    """
+            Извлекает даты выхода видеороликов из списка HTML-элементов.
+
+            Args:
+                video_elements (list[WebElement]): Список HTML-элементов видеороликов.
+                release_date_css (dict): Словарь с CSS-селектором для поиска даты выхода видеороликов.
+
+            Returns:
+                list[str]: Список дат выхода видеороликов. В случае NoSuchElementException - 'Не найдено!'
+    """
     release_dates = []
     for video_element in video_elements:
         try:
@@ -116,12 +175,22 @@ def get_release_dates_from_search(video_elements, release_date_css):
             if release_date:
                 release_dates.append(release_date)
         except NoSuchElementException:
-            release_dates.append(None)
+            release_dates.append('Не найдено!')
         except Exception as e:
             print(f'Произошла ошибка при сборе даты релиза: {e}')
     return release_dates
 
 def get_channel_names_from_search(video_elements, channel_name_css):
+    """
+    Извлекает названия YouTube-каналов, выпустивших видеоролики из списка HTML-элементов.
+
+    Args:
+        video_elements (list[WebElement]): Список HTML-элементов видеороликов.
+        channel_name_css (dict): Словарь с CSS-селектором для поиска названий YouTube-каналов.
+
+    Returns:
+        list[str]: Список названий YouTube-каналов, выпустивших видеоролики. В случае NoSuchElementException - 'Не найдено!'
+    """
     channel_names = []
     for video_element in video_elements:
         try:
@@ -130,13 +199,22 @@ def get_channel_names_from_search(video_elements, channel_name_css):
             if channel_name:
                 channel_names.append(channel_name)
         except NoSuchElementException:
-            print('Название канала не найдено!')
             channel_names.append('Не найдено!')
         except Exception as e:
             print(f'Произошла ошибка при сборе наименований каналов: {e}')
     return channel_names
 
 def get_channel_urls_from_search(video_elements, channel_url_css):
+    """
+    Извлекает URL-адреса YouTube-каналов, выпустивших видеоролики из списка HTML-элементов.
+
+    Args:
+        video_elements (list[WebElement]): Список HTML-элементов видеороликов.
+        channel_url_css (dict): Словарь с CSS-селектором для поиска URL-адресов YouTube-каналов.
+
+    Returns:
+        list[str]: Список URL-адресов YouTube-каналов, выпустивших видеоролики. В случае NoSuchElementException - 'Не найдено!'
+    """
     channel_urls = []
     for video_element in video_elements:
         try:
@@ -151,6 +229,16 @@ def get_channel_urls_from_search(video_elements, channel_url_css):
     return channel_urls
 
 def get_preview_image_from_search(video_elements, preview_image_css):
+    """
+    Извлекает URL-адреса на превью видеороликов из списка HTML-элементов.
+
+    Args:
+        video_elements (list[WebElement]): Список HTML-элементов видеороликов.
+        preview_image_css (dict): Словарь с CSS-селектором для поиска URL-адресов превью видеороликов.
+
+    Returns:
+        list[str]: Список URL-адресов на превью видеороликов. В случае NoSuchElementException - 'Не найдено!'
+    """
     preview_images = []
     for video_element in video_elements:
         try:
@@ -161,7 +249,6 @@ def get_preview_image_from_search(video_elements, preview_image_css):
             else:
                 preview_images.append(preview_image)
         except NoSuchElementException:
-            print('Ссылка на превью не найдена!')
             preview_images.append('Не найдено!')
         except Exception as e:
             print(f'Произошла ошибка при сборе ссылок на превью: {e}')
@@ -169,6 +256,19 @@ def get_preview_image_from_search(video_elements, preview_image_css):
 
 
 def scraping_info_from_search(driver, css_selectors, selected_data, functions):
+    """
+    Собирает информацию о видеороликах со страницы результатов поиска YouTube.
+
+    Args:
+        driver (undetected_chromedriver.chrome.Chrome): Экземпляр веб-драйвера.
+        css_selectors (dict): Словарь с CSS-селекторами для поиска элементов видеороликов.
+        selected_data (list[str]): Список ключей функций для сбора данных.
+        functions (dict[str, Callable]): Словарь функций для сбора данных.
+
+    Returns:
+        list[dict]: Список словарей, где каждый словарь содержит информацию об одном видеоролике.
+
+    """
     print('Начинаем прокрутку страницы')
     scroll_selenium_keys(driver)
     print('Прокрутка страницы завершена\n')
@@ -189,6 +289,15 @@ def scraping_info_from_search(driver, css_selectors, selected_data, functions):
     return video_data
 
 def filters_input(driver):
+    """
+    Запрашивает у пользователя фильтры для применения на странице результатов поиска YouTube.
+
+    Args:
+         driver (undetected_chromedriver.chrome.Chrome): Экземпляр веб-драйвера.
+
+    Returns:
+        None
+    """
     filters = load_json_file('filters.json')
 
     available_filters = list(filters.keys())
@@ -209,6 +318,16 @@ def filters_input(driver):
         time.sleep(2)
 
 def info_settings_input(driver, functions):
+    """
+    Запрашивает у пользователя, какие данные необходимо собрать со страницы результатов поиска YouTube.
+
+    Args:
+        driver (undetected_chromedriver.chrome.Chrome): Экземпляр веб-драйвера.
+        functions (dict[str, Callable]): Словарь функций для сбора данных.
+
+    Returns:
+        list[str]: Список выбранных пользователем параметров для сбора данных.
+    """
     available_options = list(functions.keys())
     print(f'Доступные параметры: {', '.join(available_options)}')
     user_input = input('Введите через запятую, какие данные вы хотите собрать: ').strip()
@@ -225,6 +344,16 @@ def info_settings_input(driver, functions):
     return selected_data
 
 def video_type_checker(video_elements, css_selectors):
+    """
+    Определяет тип видеороликов (Shorts, Live, Video) на основе url-адресов и дат публикации.
+
+    Args:
+        video_elements (list[WebElement]): Список HTML-элементов видеороликов.
+        css_selectors (dict): Словарь с CSS-селекторами для поиска элементов видеороликов.
+
+    Returns:
+        list[str]: Список типов видеороликов ('Shorts', 'Live', 'Video') или 'Неизвестно' в случае ошибки.
+    """
     video_urls = get_urls_from_search(video_elements, css_selectors)
     release_dates = get_release_dates_from_search(video_elements, css_selectors)
     video_types = []
@@ -237,7 +366,6 @@ def video_type_checker(video_elements, css_selectors):
             else:
                 video_types.append('Video')
         except Exception as e:
-            print(f'Произошла ошибка при определении типа видео: {e}')
             video_types.append('Неизвестно')
     return video_types
 
