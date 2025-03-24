@@ -31,19 +31,36 @@ def click_element(driver, css_selector, timeout=2):
     except TimeoutException:
         pass
 
-def is_video_unavailable(driver, css_selector):
+def is_video_unavailable(driver, css_selectors):
     """
     Проверяет, доступно ли видео на YouTube.
 
     Args:
         driver (undetected_chromedriver.chrome.Chrome): Экземпляр веб-драйвера.
-        css_selector (dict): Словарь с CSS-селектором для поиска элемента, указывающего на недоступность видео.
+        css_selectors (dict): Словарь с CSS-селектором для поиска элемента, указывающего на недоступность видео.
 
     Returns:
         bool: True, если видео недоступно, False в противном случае.
     """
     try:
-        unavailable_element = driver.find_element(By.CSS_SELECTOR, css_selector['is_video_unavailable'])
+        unavailable_element = driver.find_element(By.CSS_SELECTOR, css_selectors['is_video_unavailable'])
+        return True
+    except NoSuchElementException:
+        return False
+
+def is_video_unacceptable(driver, css_selectors):
+    """
+    Проверяет на наличие плашки "Это видео может оказаться неприемлемым для некоторых пользователей."
+
+    Args:
+        driver (undetected_chromedriver.chrome.Chrome): Экземпляр веб-драйвера.
+        css_selectors (dict): Словарь с CSS-селектором для поиска элемента, указывающего на недоступность видео.
+
+    Returns:
+        bool: True, если видео недоступно, False в противном случае.
+    """
+    try:
+        unavailable_element = driver.find_element(By.CSS_SELECTOR, css_selectors['is_video_unacceptable'])
         return True
     except NoSuchElementException:
         return False
@@ -202,7 +219,6 @@ def get_video_release_date(driver, css_selectors):
         release_date = release_date_element.text.strip()
         return release_date
     except NoSuchElementException:
-        print('Дата релиза Video не найдена')
         return 'Дата релиза Video не найдена'
     except Exception as e:
         print(f'Произошла ошибка при сборе даты релиза Video')
@@ -230,6 +246,23 @@ def get_video_title(driver, css_selectors):
     except Exception as e:
         print(f'Произошла ошибка при сборе названия Video: {e}')
 
+
+def is_shorts_unavailable(driver, css_selectors):
+    """
+    Проверяет Shorts на наличие предупреждения о неприемлемом видео.
+
+    Args:
+        driver (undetected_chromedriver.chrome.Chrome): Экземпляр веб-драйвера.
+        css_selectors (dict): Словарь с CSS-селектором для поиска элемента, указывающего на недоступность видео.
+
+    Returns:
+        bool: True, если видео недоступно, False в противном случае.
+    """
+    try:
+        unavailable_element = driver.find_element(By.CSS_SELECTOR, css_selectors['shorts_age_disclaimer'])
+        return True
+    except NoSuchElementException:
+        return False
 
 def get_shorts_title(driver, css_selectors):
     """
@@ -421,23 +454,26 @@ def info_from_user():
     Запрашивает у пользователя тип видео и информацию для сбора.
 
     Returns:
-        tuple[str, list[str], dict[str, Callable]]: Кортеж, содержащий:
-            - Тип видео ('Video' или 'Shorts').
+        tuple[list[str], list[str], dict[str, Callable]]: Кортеж, содержащий:
+            - Список типов видео ('Video' и/или 'Shorts').
             - Список выбранных пользователем параметров для сбора данных.
             - Словарь функций для сбора данных.
     """
-    print('Выберите тип видео:\n1. Video\n2. Shorts')
-    choice = input('Введите 1 или 2: ')
+    print('Выберите тип видео:\n1. Video\n2. Shorts\n3. Shorts и Video')
+    choice = input('Введите 1, 2 или 3: ')
 
     if choice == '1':
+        video_types = ['Video']
         scraper_functions = video_scraper_functions
-        video_type = 'Video'
     elif choice == '2':
+        video_types = ['Shorts']
         scraper_functions = shorts_scraper_functions
-        video_type = 'Shorts'
+    elif choice == '3':
+        video_types = ['Video', 'Shorts']
+        scraper_functions = {**video_scraper_functions, **shorts_scraper_functions}
     else:
         print('Некорректный выбор!')
-        exit()
+        return None
 
     available_info = list(scraper_functions.keys())
     print('Выберите, какую информацию требуется собрать:')
@@ -450,16 +486,20 @@ def info_from_user():
         selected_info = available_info
     else:
         selected_numbers = [int(i) - 1 for i in selected_numbers.split()]
-        selected_info = [available_info[i] for i in selected_numbers]
-    return video_type, selected_info, scraper_functions
+        selected_info = [available_info[i] for i in selected_numbers if 0 <= i <len(available_info)]
+
+    selected_scraper_functions = {}
+    for info_key in selected_info:
+        if info_key in selected_info:
+            selected_scraper_functions[info_key] = scraper_functions[info_key]
+    return video_types, selected_info
 
 def scraping_info_from_videos(
         driver,
         css_selectors,
         input_filename,
         selected_info,
-        scraper_functions,
-        video_type
+        video_types
 ):
     """
     Собирает информацию о видеороликах из JSON-файла, применяя заданные функции сбора данных.
@@ -469,18 +509,17 @@ def scraping_info_from_videos(
         css_selectors (dict): Словарь с CSS-селекторами для поиска элементов видеороликов.
         input_filename (str): Имя JSON-файла с данными о видеороликах.
         selected_info (list[str]): Список ключей функций для сбора данных.
-        scraper_functions (dict[str, Callable]): Словарь функций для сбора данных.
-        video_type (str): Тип видеороликов для фильтрации ('Video' или 'Shorts').
+        video_types (list[str]): Тип видеороликов для фильтрации ('Video' или 'Shorts').
 
     Returns:
         list[dict]: Список словарей, где каждый словарь содержит информацию об одном видеоролике.
                    Возвращает пустой список, если видеоролики заданного типа не найдены.
     """
     input_data = load_json_file(input_filename)
-    filtered_data = [video for video in input_data if video['type'] == video_type]
+    filtered_data = [video for video in input_data if video['type'] in video_types]
 
     if not filtered_data:
-        print(f'Видео типа "{video_type} не найдены в файле!')
+        print(f'Видео типов "{", ".join(video_types)}" не найдены в файле!')
         return []
 
     video_data = []
@@ -492,26 +531,51 @@ def scraping_info_from_videos(
 
         video_info = {
             'title': None,
+            'type': video['type'],
             'views': None,
             'likes': None,
             'comments': None,
             'release_date': None,
             'url': video['url'],
+            'channel_name': video['channel_name'],
+            'channel_url': video['channel_url'],
             'description': None,
+            'preview_image': video['preview_image']
         }
 
-        if scraper_functions == video_scraper_functions:
+        current_scraper_functions = {}
+        if video['type'] == 'Video':
+            for key in selected_info:
+                if key in video_scraper_functions:
+                    current_scraper_functions[key] = video_scraper_functions[key]
+        elif video['type'] == 'Shorts':
+            for key in selected_info:
+                if key in shorts_scraper_functions:
+                    current_scraper_functions[key] = shorts_scraper_functions[key]
+        else:
+            print(f'Неизвестный тип видео: {video['type']}, пропускаем...')
+            continue
+
+        if video['type'] == 'Video':
             if is_video_unavailable(driver, css_selectors):
                 print('Video недоступно!')
                 video_info['status'] = 'Видео удалено/недоступно'
                 video_data.append(video_info)
                 continue
-            else:
-                print('Video доступно')
+            elif is_video_unacceptable(driver, css_selectors):
+                print('YouTube посчитал данное видео неприемлемым!')
+                video_info['status'] = 'YouTube посчитал данное видео неприемлемым!'
+                video_data.append(video_info)
+                continue
+
+        elif video['type'] == 'Shorts' and is_shorts_unavailable(driver, css_selectors):
+            print('Shorts недоступен, т.к. YouTube посчитал его неприемлемым.')
+            video_info['status'] = 'Shorts недоступен, т.к. YouTube посчитал его неприемлемым.'
+            continue
 
         collected_data = {}
-        for key in selected_info:
-            collected_data[key] = scraper_functions[key](driver, css_selectors)
+        for key in current_scraper_functions:
+            collected_data[key] = current_scraper_functions[key](driver, css_selectors)
 
         video_info.update(collected_data)
         video_data.append(video_info)
@@ -540,15 +604,14 @@ def main():
 
     css_selectors = load_json_file('css_selectors.json')
 
-    video_type, selected_info, scraper_functions = info_from_user()
+    video_types, selected_info = info_from_user()
 
     video_data = scraping_info_from_videos(
         driver,
         css_selectors,
         'video_data.json',
         selected_info,
-        scraper_functions,
-        video_type
+        video_types
     )
 
     save_json_file(video_data, 'test_main_data.json')
