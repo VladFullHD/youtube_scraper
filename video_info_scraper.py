@@ -459,21 +459,25 @@ def info_from_user():
             - Список выбранных пользователем параметров для сбора данных.
             - Словарь функций для сбора данных.
     """
-    print('Выберите тип видео:\n1. Video\n2. Shorts\n3. Shorts и Video')
-    choice = input('Введите 1, 2 или 3: ')
+    while True:
+        print('Выберите тип видео:\n1. Video\n2. Shorts\n3. Shorts и Video')
+        choice = input('Введите 1, 2 или 3: ')
 
-    if choice == '1':
-        video_types = ['Video']
-        scraper_functions = video_scraper_functions
-    elif choice == '2':
-        video_types = ['Shorts']
-        scraper_functions = shorts_scraper_functions
-    elif choice == '3':
-        video_types = ['Video', 'Shorts']
-        scraper_functions = {**video_scraper_functions, **shorts_scraper_functions}
-    else:
-        print('Некорректный выбор!')
-        return None
+        if choice == '1':
+            video_types = ['Video']
+            scraper_functions = video_scraper_functions
+            break
+        elif choice == '2':
+            video_types = ['Shorts']
+            scraper_functions = shorts_scraper_functions
+            break
+        elif choice == '3':
+            video_types = ['Video', 'Shorts']
+            scraper_functions = {**video_scraper_functions, **shorts_scraper_functions}
+            break
+        else:
+            print('Некорректный выбор!')
+            return None
 
     available_info = list(scraper_functions.keys())
     print('Выберите, какую информацию требуется собрать:')
@@ -488,10 +492,6 @@ def info_from_user():
         selected_numbers = [int(i) - 1 for i in selected_numbers.split()]
         selected_info = [available_info[i] for i in selected_numbers if 0 <= i <len(available_info)]
 
-    selected_scraper_functions = {}
-    for info_key in selected_info:
-        if info_key in selected_info:
-            selected_scraper_functions[info_key] = scraper_functions[info_key]
     return video_types, selected_info
 
 def scraping_info_from_videos(
