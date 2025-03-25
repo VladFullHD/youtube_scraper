@@ -11,10 +11,10 @@
   "preview_image_url": "img.yt-core-image",
 
   "video_title": "#title > h1 > yt-formatted-string",
-  "likes": "button[aria-label^=\"Видео понравилось вам и ещё\"]",
-  "description_button": "#expand",
-  "description": "#description-inline-expander > yt-attributed-string > span",
-  "comments": "#count > yt-formatted-string",
+  "video_likes": "button[aria-label^=\"Видео понравилось вам и ещё\"]",
+  "video_description_button": "#expand",
+  "video_description": "#description-inline-expander > yt-attributed-string > span",
+  "video_comments": "#count > yt-formatted-string",
   "video_views": "#info > span:nth-child(3)",
   "video_release_date": "#info > span",
   "comments_turned_off": "#message",
@@ -36,7 +36,7 @@
   "shorts_views": "#factoids > view-count-factoid-renderer > factoid-renderer > div > span.ytwFactoidRendererValue > span",
   "shorts_hours_ago_1": "#factoids > upload-time-factoid-renderer > factoid-renderer > div > span.ytwFactoidRendererValue > span",
   "shorts_hours_ago_2": "#factoids > upload-time-factoid-renderer > factoid-renderer > div > span.ytwFactoidRendererLabel > span",
-  "shorts_month_day": "#factoids > factoid-renderer:nth-child(3) > div > span.ytwFactoidRendererValue",
+  "shorts_day_month": "#factoids > factoid-renderer:nth-child(3) > div > span.ytwFactoidRendererValue",
   "shorts_year": "#factoids > factoid-renderer:nth-child(3) > div > span.ytwFactoidRendererLabel",
-  "shorts_age_disclaimer": "#container > yt-player-interstitial-renderer > div > yt-interstitial-view-model > div.interstitial-view-model-wiz__interstitial-description.interstitial-view-model-wiz__flex-item > span"
+  "is_shorts_unacceptable": "#container > yt-player-interstitial-renderer > div > yt-interstitial-view-model > div.interstitial-view-model-wiz__interstitial-description.interstitial-view-model-wiz__flex-item > span"
 }
