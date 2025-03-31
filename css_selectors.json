@@ -22,10 +22,9 @@
   "is_video_unacceptable": "#subreason",
 
 
-  "shorts_title_1": "#title > yt-formatted-string > span",
-  "shorts_title_2": "#metapanel > yt-reel-metapanel-view-model > div:nth-child(2) > yt-shorts-video-title-view-model > h2 > span",
-  "shorts_title_3": "#metapanel > yt-reel-metapanel-view-model > div:nth-child(3) > yt-shorts-video-title-view-model > h2 > span",
-  "shorts_title_4": "#metapanel > yt-reel-metapanel-view-model > div:nth-child(4) > yt-shorts-video-title-view-model > h2 > span",
+  "shorts_title_1": "#metapanel > yt-reel-metapanel-view-model > div:nth-child(2) > yt-shorts-video-title-view-model > h2 > span",
+  "shorts_title_2": "#metapanel > yt-reel-metapanel-view-model > div:nth-child(3) > yt-shorts-video-title-view-model > h2 > span",
+  "shorts_title_3": "#metapanel > yt-reel-metapanel-view-model > div:nth-child(4) > yt-shorts-video-title-view-model > h2 > span",
   "shorts_comments": "#comments-button > ytd-button-renderer > yt-button-shape > label > div",
   "shorts_likes": "#factoids > factoid-renderer > div > span.ytwFactoidRendererValue > span",
   "shorts_menu_button": "#button-shape > button > div",

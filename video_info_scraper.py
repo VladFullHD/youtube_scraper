@@ -252,7 +252,7 @@ class YouTubeScraper:
                          или 'Название Shorts не найдено', если элемент не найден,
                          или None, если произошла другая ошибка.
         """
-        selectors = ['shorts_title_1', 'shorts_title_2', 'shorts_title_3', 'shorts_title_4']
+        selectors = ['shorts_title_1', 'shorts_title_2', 'shorts_title_3']
         for selector in selectors:
             try:
                 shorts_title_element = WebDriverWait(self.driver, 0.5).until(
