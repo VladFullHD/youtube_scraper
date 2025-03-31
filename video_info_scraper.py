@@ -238,6 +238,11 @@ class YouTubeScraper:
             self.logger.info('Проверка на неприемлемый Shorts: пройдена успешно.')
             return False
 
+    def open_shorts_description(self):
+        self.click_element('shorts_menu_button')
+        self.click_element('shorts_description_button')
+        self.click_element('shorts_more_button')
+
     def get_shorts_title(self):
         """
         Извлекает заголовок Shorts-видео с YouTube.
@@ -247,10 +252,6 @@ class YouTubeScraper:
                          или 'Название Shorts не найдено', если элемент не найден,
                          или None, если произошла другая ошибка.
         """
-        self.click_element('shorts_menu_button')
-        self.click_element('shorts_description_button')
-        self.click_element('shorts_more_button')
-
         selectors = ['shorts_title_1', 'shorts_title_2', 'shorts_title_3', 'shorts_title_4']
         for selector in selectors:
             try:
@@ -505,6 +506,26 @@ class YouTubeScraper:
 
             video_info = OrderedDict()
 
+            if video['type'] == 'Video':
+                if self.is_video_unavailable():
+                    video_info['status'] = 'Видео удалено/недоступно'
+                    video_data.append(video_info)
+                    continue
+                elif self.is_video_unacceptable():
+                    video_info['status'] = 'YouTube посчитал данное видео неприемлемым!'
+                    video_data.append(video_info)
+                    continue
+
+            elif video['type'] == 'Shorts':
+                shorts_description_clicked = False
+                #Делаем проверку на клик по описанию Shorts для извлечения необходимой информации.
+                if not shorts_description_clicked:
+                    self.open_shorts_description()
+                    shorts_description_clicked = True
+                if self.is_shorts_unacceptable():
+                    video_info['status'] = 'Shorts недоступен, т.к. YouTube посчитал его неприемлемым.'
+                    continue
+
             #Для перебора функций, которые выбрал пользователь.
             for func in selected_info:
                 #Если выбранная пользователем функция присутствует в одном из словарей с функциями - собираем данные с веб-страницы.
@@ -518,20 +539,6 @@ class YouTubeScraper:
                         current_scraper_functions[func] = self.shorts_scraper_functions[func]
                     else:
                         self.logger.warning(f'Неизвестный тип видео: {video['type']}, пропускаем...')
-                        continue
-
-                    if video['type'] == 'Video':
-                        if self.is_video_unavailable():
-                            video_info['status'] = 'Видео удалено/недоступно'
-                            video_data.append(video_info)
-                            continue
-                        elif self.is_video_unacceptable():
-                            video_info['status'] = 'YouTube посчитал данное видео неприемлемым!'
-                            video_data.append(video_info)
-                            continue
-
-                    elif video['type'] == 'Shorts' and self.is_shorts_unacceptable():
-                        video_info['status'] = 'Shorts недоступен, т.к. YouTube посчитал его неприемлемым.'
                         continue
 
                     collected_data = {}
