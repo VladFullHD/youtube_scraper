@@ -1,6 +1,7 @@
 import re
 import time
 import logging
+from collections import OrderedDict
 from selenium.common import TimeoutException, NoSuchElementException
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
@@ -450,7 +451,8 @@ class YouTubeScraper:
                 self.logger.warning('Некорректный выбор типа видео.')
                 print('Некорректный выбор типа видео! Попробуйте еще раз.')
 
-        available_info = list(scraper_functions.keys())
+        base_info = ['type', 'url', 'channel_name', 'channel_url', 'preview_image']
+        available_info = list(scraper_functions.keys()) + base_info
         while True:
             print('Выберите, какую информацию требуется собрать:')
             for i, function in enumerate(available_info):
@@ -487,6 +489,7 @@ class YouTubeScraper:
                        Возвращает пустой список, если видеоролики заданного типа не найдены.
         """
         input_data = load_json_file(input_filename)
+        #Фильтруем по указанному пользователем типу видео.
         filtered_data = [video for video in input_data if video['type'] in video_types]
 
         if not filtered_data:
@@ -500,57 +503,47 @@ class YouTubeScraper:
             self.driver.get(video['url'])
             time.sleep(1)
 
-            video_info = {
-                'title': None,
-                'type': video['type'],
-                'views': None,
-                'likes': None,
-                'comments': None,
-                'release_date': None,
-                'url': video['url'],
-                'channel_name': video['channel_name'],
-                'channel_url': video['channel_url'],
-                'description': None,
-                'preview_image': video['preview_image']
-            }
+            video_info = OrderedDict()
 
-            current_scraper_functions = {}
-            if video['type'] == 'Video':
-                for key in selected_info:
-                    if key in self.video_scraper_functions:
-                        self.logger.info(f'Выбрана функция {key} для сбора информации.')
-                        current_scraper_functions[key] = self.video_scraper_functions[key]
-            elif video['type'] == 'Shorts':
-                for key in selected_info:
-                    if key in self.shorts_scraper_functions:
-                        self.logger.info(f'Выбрана функция {key} для сбора информации.')
-                        current_scraper_functions[key] = self.shorts_scraper_functions[key]
-            else:
-                self.logger.warning(f'Неизвестный тип видео: {video['type']}, пропускаем...')
-                continue
+            #Для перебора функций, которые выбрал пользователь.
+            for func in selected_info:
+                #Если выбранная пользователем функция присутствует в одном из словарей с функциями - собираем данные с веб-страницы.
+                if func in self.video_scraper_functions or func in self.shorts_scraper_functions:
+                    current_scraper_functions = {}
+                    if video['type'] == 'Video' and func in self.video_scraper_functions:
+                        self.logger.info(f'Выбрана функция {func} для сбора информации.')
+                        current_scraper_functions[func] = self.video_scraper_functions[func]
+                    elif video['type'] == 'Shorts' and func in self.shorts_scraper_functions:
+                        self.logger.info(f'Выбрана функция {func} для сбора информации.')
+                        current_scraper_functions[func] = self.shorts_scraper_functions[func]
+                    else:
+                        self.logger.warning(f'Неизвестный тип видео: {video['type']}, пропускаем...')
+                        continue
 
-            if video['type'] == 'Video':
-                if self.is_video_unavailable():
-                    video_info['status'] = 'Видео удалено/недоступно'
-                    video_data.append(video_info)
-                    continue
-                elif self.is_video_unacceptable():
-                    video_info['status'] = 'YouTube посчитал данное видео неприемлемым!'
-                    video_data.append(video_info)
-                    continue
+                    if video['type'] == 'Video':
+                        if self.is_video_unavailable():
+                            video_info['status'] = 'Видео удалено/недоступно'
+                            video_data.append(video_info)
+                            continue
+                        elif self.is_video_unacceptable():
+                            video_info['status'] = 'YouTube посчитал данное видео неприемлемым!'
+                            video_data.append(video_info)
+                            continue
 
-            elif video['type'] == 'Shorts' and self.is_shorts_unacceptable():
-                video_info['status'] = 'Shorts недоступен, т.к. YouTube посчитал его неприемлемым.'
-                continue
+                    elif video['type'] == 'Shorts' and self.is_shorts_unacceptable():
+                        video_info['status'] = 'Shorts недоступен, т.к. YouTube посчитал его неприемлемым.'
+                        continue
 
-            collected_data = {}
-            for key in current_scraper_functions:
-                collected_data[key] = current_scraper_functions[key](self)
+                    collected_data = {}
+                    for key in current_scraper_functions:
+                        collected_data[key] = current_scraper_functions[key](self)
 
-            video_info.update(collected_data)
+                    video_info.update(collected_data)
+                #Если выбранная пользователем функция отсутствует в словарях - подтягиваем информацию из исходного файла.
+                elif func in video:
+                    video_info[func] = video[func]
             video_data.append(video_info)
         return video_data
-
 
 
     def main(self, driver):
@@ -565,7 +558,12 @@ class YouTubeScraper:
         driver.quit()
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(funcName)s - %(message)s")
+    logging.basicConfig(level=logging.INFO,
+                        format="%(asctime)s - %(levelname)s - %(funcName)s - %(message)s",
+                        filename='video_info_scraper.log',
+                        filemode='a',
+                        encoding='utf-8'
+                        )
 
     driver = setup_options_webdriver()
     css_selectors = load_json_file('css_selectors.json')
