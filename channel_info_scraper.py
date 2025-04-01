@@ -1,8 +1,6 @@
 import logging
 import time
-
 from selenium.common import TimeoutException, NoSuchElementException
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -45,6 +43,27 @@ class ChannelScraper:
     #             input_data = load_json_file(filename)
     #             return self._normalize_urls(input_data)
 
+    def click_element(self, selector_key, timeout=1):
+        """
+        Кликает на элемент веб-страницы, используя CSS-селектор.
+
+        Args:
+            selector_key (str): Ключ для поиска значения в css_selectors.
+            timeout (int, optional): Максимальное время ожидания элемента в секундах. По умолчанию = 2.
+
+        Returns:
+            None
+        """
+        try:
+            element = WebDriverWait(self.driver, timeout).until(
+                EC.visibility_of_element_located((By.CSS_SELECTOR, self.css_selectors[selector_key]))
+            )
+            ActionChains(self.driver).move_to_element(element).click().perform()
+            self.logger.info(f'Клик на элемент {selector_key} выполнен успешно.')
+        except TimeoutException:
+            self.logger.warning(f'Не удалось кликнуть на элемент {selector_key}.')
+
+
     def get_channel_subscribers(self):
         try:
             subscribers_element = self.driver.find_element(By.CSS_SELECTOR, self.css_selectors['channel_subscribers'])
@@ -69,9 +88,131 @@ class ChannelScraper:
             self.logger.error(f'Произошла ошибка при сборе количества видеороликов: {e}.')
             return None
 
+    def get_channel_full_name(self):
+        try:
+            channel_full_name_element = self.driver.find_element(By.CSS_SELECTOR, self.css_selectors['channel_full_name'])
+            self.logger.info('Полное название канала найдено успешно.')
+            return channel_full_name_element.text.strip()
+        except NoSuchElementException:
+            self.logger.warning('Полное название канала не найдено.')
+            return 'Полное название канала не найдено.'
+        except Exception as e:
+            self.logger.error(f'Произошла ошибка при сборе полного названия канала: {e}.')
+            return None
+
+    def get_channel_name(self):
+        try:
+            channel_name_element = self.driver.find_element(By.CSS_SELECTOR, self.css_selectors['channel_name'])
+            self.logger.info('Название канала найдено успешно.')
+            return channel_name_element.text.strip()
+        except NoSuchElementException:
+            self.logger.warning('Название канала не найдено.')
+            return 'Название канала не найдено.'
+        except Exception as e:
+            self.logger.error(f'Произошла ошибка при сборе названия канала: {e}.')
+            return None
+
+    def get_channel_main_description(self):
+        self.click_element('channel_description_button')
+        try:
+            main_description_element = WebDriverWait(self.driver, 1).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, self.css_selectors['channel_main_description']))
+            )
+            self.logger.info('Основное описание канала найдено успешно.')
+            return main_description_element.text.strip()
+        except NoSuchElementException:
+            self.logger.warning('Основное описание канала не найдено.')
+            return 'Основное описание канала не найдено.'
+        except Exception as e:
+            self.logger.error(f'Произошла ошибка при сборе основного описания канала: {e}.')
+            return None
+
+    def get_channel_links(self):
+        try:
+            channel_links_element = self.driver.find_element(By.CSS_SELECTOR, self.css_selectors['channel_links'])
+            self.logger.info('Ссылки из описания канала найдены успешно.')
+            return channel_links_element.text.strip()
+        except NoSuchElementException:
+            self.logger.warning('Ссылки из описания канала не найдены.')
+            return 'Ссылки из описания канала не найдены.'
+        except Exception as e:
+            self.logger.error(f'Произошла ошибка при сборе ссылок из описания канала: {e}.')
+            return None
+
+    def get_channel_country(self):
+        try:
+            channel_country_element = self.driver.find_element(By.CSS_SELECTOR, self.css_selectors['channel_country'])
+            self.logger.info('Страна канала найдена успешно.')
+            return channel_country_element.text.strip()
+        except NoSuchElementException:
+            self.logger.warning('Страна канала не найдена.')
+            return 'Страна канала не найдена.'
+        except Exception as e:
+            self.logger.error(f'Произошла ошибка при сборе информации о стране канала: {e}.')
+            return None
+
+    def get_channel_registration_date(self):
+        try:
+            channel_registration_element = self.driver.find_element(By.CSS_SELECTOR, self.css_selectors['channel_registration_date'])
+            self.logger.info('Дата регистрации канала найдена успешно.')
+            return channel_registration_element.text.strip()
+        except NoSuchElementException:
+            self.logger.warning('Дата регистрации канала не найдена.')
+            return 'Дата регистрации канала не найдена.'
+        except Exception as e:
+            self.logger.error(f'Произошла ошибка при сборе информации о дате регистрации канала: {e}.')
+            return None
+
+    def get_channel_total_views(self):
+        try:
+            channel_total_views_element = self.driver.find_element(By.CSS_SELECTOR, self.css_selectors['channel_total_views'])
+            self.logger.info('Общее количество просмотров на канале найдено успешно.')
+            return channel_total_views_element.text.strip()
+        except NoSuchElementException:
+            self.logger.warning('Общее количество просмотров на канале не найдено.')
+            return 'Общее количество просмотров на канале не найдено.'
+        except Exception as e:
+            self.logger.error(f'Произошла ошибка при сборе информации об общем количестве просмотров на канале: {e}.')
+            return None
+
+    def get_channel_banner(self):
+        try:
+            channel_banner_element = self.driver.find_element(By.CSS_SELECTOR, self.css_selectors['channel_banner'])
+            channel_banner = channel_banner_element.get_attribute('src')
+            self.logger.info('Баннер канала найден успешно.')
+            return channel_banner
+        except NoSuchElementException:
+            self.logger.warning('Баннер канала не найден.')
+            return 'Баннер канала не найден.'
+        except Exception as e:
+            self.logger.warning(f'Произошла ошибка при сборе ссылки на баннер канала: {e}.')
+            return None
+
+    def get_channel_profile_picture(self):
+        try:
+            channel_profile_picture_element = self.driver.find_element(By.CSS_SELECTOR, self.css_selectors['channel_banner'])
+            channel_profile_picture = channel_profile_picture_element.get_attribute('src')
+            self.logger.info('Фото профиля канала найдено успешно.')
+            return channel_profile_picture
+        except NoSuchElementException:
+            self.logger.warning('Фото профиля канала не найдено.')
+            return 'Фото профиля канала не найдено.'
+        except Exception as e:
+            self.logger.warning(f'Произошла ошибка при сборе ссылки на фото профиля канала: {e}.')
+            return None
+
     channel_scraper_functions = {
         'subscribers': get_channel_subscribers,
-        'number_of_videos': get_channel_number_videos
+        'number_of_videos': get_channel_number_videos,
+        'full_name': get_channel_full_name,
+        'name': get_channel_name,
+        'main_description': get_channel_main_description,
+        'links': get_channel_links,
+        'country': get_channel_country,
+        'registration_date': get_channel_registration_date,
+        'total_views': get_channel_total_views,
+        'banner': get_channel_banner,
+        'profile_picture': get_channel_profile_picture
     }
 
     def info_from_user(self):
