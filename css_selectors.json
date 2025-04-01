@@ -17,7 +17,7 @@
   "video_comments": "#count > yt-formatted-string",
   "video_views": "#info > span:nth-child(1)",
   "video_release_date": "#info > span:nth-child(3)",
-  "comments_turned_off": "#message",
+  "comments_turned_off": "#message > span",
   "is_video_unavailable": "#contents > ytd-background-promo-renderer > div.promo-message.style-scope.ytd-background-promo-renderer > div",
   "is_video_unacceptable": "#subreason",
 
