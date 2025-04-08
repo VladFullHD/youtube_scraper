@@ -40,7 +40,7 @@ def filter_settings(driver, filter_names):
     Returns:
         None
     """
-    filters = load_json_file('filters.json')
+    filters = load_json_file('search_filters.json')
     try:
         for filter_name in filter_names:
             filter_button = WebDriverWait(driver, 10).until(
@@ -298,7 +298,7 @@ def filters_input(driver):
     Returns:
         None
     """
-    filters = load_json_file('filters.json')
+    filters = load_json_file('search_filters.json')
 
     available_filters = list(filters.keys())
     print(f'Доступные фильтры: {', '.join(available_filters)}')

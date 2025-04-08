@@ -50,7 +50,16 @@
   "channel_country": "#additional-info-container > table > tbody > tr:nth-child(4) > td:nth-child(2)",
   "channel_registration_date": "#additional-info-container > table > tbody > tr:nth-child(5) > td:nth-child(2) > yt-attributed-string > span > span",
   "channel_total_views": "#additional-info-container > table > tbody > tr:nth-child(8) > td:nth-child(2)",
+  "channel_description_close_button": "#visibility-button > ytd-button-renderer > yt-button-shape > button > yt-touch-feedback-shape > div > div.yt-spec-touch-feedback-shape__fill",
   "channel_banner": "#page-header-banner-sizer > yt-image-banner-view-model > img",
   "channel_profile_picture": "#page-header > yt-page-header-renderer > yt-page-header-view-model > div > div.page-header-view-model-wiz__page-header-headline > yt-decorated-avatar-view-model > yt-avatar-shape > div > div > div > img",
-  "channel_video_button": "#tabsContent > yt-tab-group-shape > div.yt-tab-group-shape-wiz__tabs > yt-tab-shape:nth-child(2) > div.yt-tab-shape-wiz__tab"
+  "channel_video_button": "#tabsContent > yt-tab-group-shape > div.yt-tab-group-shape-wiz__tabs > yt-tab-shape:nth-child(2)",
+  "channel_all_videos": "#contents > ytd-rich-item-renderer",
+  "channel_video_url": "#video-title-link",
+  "channel_video_title": "a#video-title-link yt-formatted-string#video-title",
+  "channel_video_views": "#metadata-line > span:nth-child(3)",
+  "channel_video_release_date": "#metadata-line > span:nth-child(4)",
+  "channel_video_preview": "#thumbnail > yt-image > img",
+  "popular_filter": "#chips-content #scroll-container iron-selector yt-chip-cloud-chip-renderer:nth-child(2)",
+  "old_filter": "#chips-content #scroll-container iron-selector yt-chip-cloud-chip-renderer:nth-child(3)"
 }
