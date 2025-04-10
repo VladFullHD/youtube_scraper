@@ -521,6 +521,7 @@ class ChannelScraper:
 
                 video_data = self.scraping_channel_videos(selected_video_info)
                 save_json_file(video_data, f'channel_scraper_output_data/{channel_name}_video.json')
+                self.save_to_googlesheets(video_data, SPREADSHEET_ID, f'{channel_name}_video')
 
         #Собираем всю информацию.
         elif user_choice == '3':
@@ -537,6 +538,7 @@ class ChannelScraper:
                 #Собираем информацию о канале.
                 channel_data = self.scraping_channel_info(selected_channel_info)
                 save_json_file(channel_data, f'channel_scraper_output_data/{channel_name}.json')
+                self.save_to_googlesheets(channel_data, SPREADSHEET_ID, channel_name)
 
                 self.click_element('channel_video_button')
 
@@ -546,6 +548,7 @@ class ChannelScraper:
                 #Собираем информацию о видео на канале.
                 video_data = self.scraping_channel_videos(selected_video_info)
                 save_json_file(video_data, f'channel_scraper_output_data/{channel_name}_video.json')
+                self.save_to_googlesheets(video_data, SPREADSHEET_ID, f'{channel_name}_video')
 
         input('Нажмите Enter, чтобы закрыть драйвер!')
         driver.quit()
