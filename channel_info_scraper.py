@@ -325,7 +325,58 @@ class ChannelScraper:
             return None
 
 
-    def channel_video_filter_input(self):
+    def get_channel_all_shorts_elements(self):
+        try:
+            all_shorts_elements = self.driver.find_elements(By.CSS_SELECTOR, css_selectors['channel_all_shorts'])
+            number_of_shorts = len(all_shorts_elements)
+            print(f'Найдено Shorts на канале: {number_of_shorts}.')
+            self.logger.info(f'Все элементы Shorts найдены успешно. \nНайдено всего: {number_of_shorts} Shorts.')
+            return all_shorts_elements
+        except NoSuchElementException:
+            self.logger.warning('Не удалось найти ни одного элемента Shorts.')
+            return 'Не удалось найти ни одного элемента Shorts.'
+        except Exception as e:
+            self.logger.error(f'Произошла ошибка при сборе элементов Shorts: {e}.')
+
+    def get_channel_shorts_title(self, video_element):
+        try:
+            shorts_title_element = video_element.find_element(By.CSS_SELECTOR, css_selectors['channel_shorts_title'])
+            self.logger.info('Название Shorts найдено успешно.')
+            return shorts_title_element.text.strip()
+        except NoSuchElementException:
+            self.logger.warning('Название Shorts не найдено.')
+            return 'Название Shorts не найдено.'
+        except Exception as e:
+            self.logger.error(f'Произошла ошибка при сборе названия Shorts: {e}.')
+            return None
+
+    def get_channel_shorts_views(self, video_element):
+        try:
+            shorts_views_element = video_element.find_element(By.CSS_SELECTOR, css_selectors['channel_shorts_views'])
+            self.logger.info('Количество просмотров Shorts найдено успешно.')
+            return shorts_views_element.text.strip()
+        except NoSuchElementException:
+            self.logger.warning('Количество просмотров Shorts не найдено.')
+            return 'Количество просмотров Shorts не найдено.'
+        except Exception as e:
+            self.logger.error(f'Произошла ошибка при сборе количества просмотров Shorts: {e}.')
+            return None
+
+    def get_channel_shorts_preview(self, video_element):
+        try:
+            shorts_preview_element = video_element.find_element(By.CSS_SELECTOR, css_selectors['channel_shorts_preview'])
+            shorts_preview = shorts_preview_element.get_attribute('src')
+            self.logger.info('Превью к Shorts найдено успешно.')
+            return shorts_preview
+        except NoSuchElementException:
+            self.logger.warning('Превью к Shorts не найдено.')
+            return 'Превью к Shorts не найдено.'
+        except Exception as e:
+            self.logger.error(f'Произошла ошибка при сборе превью к Shorts: {e}.')
+            return None
+
+
+    def channel_filter_input(self):
         while True:
             print(f'Доступные фильтры:\n1. popular\n2. old')
             user_filter_input = input(
@@ -340,20 +391,12 @@ class ChannelScraper:
             else:
                 print('Ошибка: введен некорректный фильтр!')
 
-    def channel_video_filter(self, video_filter):
-        if video_filter == '1':
+    def channel_filter_click(self, filters):
+        if filters == '1':
             self.click_element('popular_filter')
-        elif video_filter == '2':
+        elif filters == '2':
             self.click_element('old_filter')
 
-
-    video_from_channel_functions = {
-        'title': get_channel_video_title,
-        'url': get_channel_video_url,
-        'views': get_channel_video_views,
-        'release_date': get_channel_video_release_date,
-        'preview': get_channel_video_preview
-    }
 
     info_from_channel_functions = {
         'subscribers': get_channel_subscribers,
@@ -369,30 +412,20 @@ class ChannelScraper:
         'profile_picture': get_channel_profile_picture,
     }
 
+    video_from_channel_functions = {
+        'title': get_channel_video_title,
+        'url': get_channel_video_url,
+        'views': get_channel_video_views,
+        'release_date': get_channel_video_release_date,
+        'preview': get_channel_video_preview
+    }
 
-    def info_from_channel_video_input(self):
-        available_info = list(self.video_from_channel_functions.keys())
-        while True:
-            print('Выберите, какую информацию о видео необходимо собрать:')
-            for i, function in enumerate(available_info):
-                print(f'{i + 1}. {function}')
+    shorts_from_channel_functions = {
+        'title': get_channel_shorts_title,
+        'views': get_channel_shorts_views,
+        'preview': get_channel_shorts_preview
+    }
 
-            selected_numbers = input('Введите номера, чтобы выбрать необходимую информацию через пробел\n(Или нажмите Enter для сбора всей информации): ')
-            if not selected_numbers:
-                self.logger.info('Выбор необходимой информации был пропущен.')
-                selected_video_info = available_info
-                break
-
-            else:
-                try:
-                    selected_numbers = [int(i) - 1 for i in selected_numbers.split()]
-                    selected_video_info = [available_info[i] for i in selected_numbers if 0 <= i <len(available_info)]
-                    break
-                except ValueError:
-                    self.logger.warning('Некорректный ввод номеров функций.')
-                    print('Некорректный ввод номеров функций!')
-
-        return selected_video_info
 
     def info_from_channel_input(self):
         """
@@ -425,6 +458,70 @@ class ChannelScraper:
 
         return selected_channel_info
 
+    def info_from_channel_video_input(self):
+        available_info = list(self.video_from_channel_functions.keys())
+        while True:
+            print('Выберите, какую информацию о видео необходимо собрать:')
+            for i, function in enumerate(available_info):
+                print(f'{i + 1}. {function}')
+
+            selected_numbers = input('Введите номера, чтобы выбрать необходимую информацию через пробел\n(Или нажмите Enter для сбора всей информации): ')
+            if not selected_numbers:
+                self.logger.info('Выбор необходимой информации был пропущен.')
+                selected_video_info = available_info
+                break
+
+            else:
+                try:
+                    selected_numbers = [int(i) - 1 for i in selected_numbers.split()]
+                    selected_video_info = [available_info[i] for i in selected_numbers if 0 <= i <len(available_info)]
+                    break
+                except ValueError:
+                    self.logger.warning('Некорректный ввод номеров функций.')
+                    print('Некорректный ввод номеров функций!')
+
+        return selected_video_info
+
+    def info_from_channel_shorts_input(self):
+        available_info = list(self.shorts_from_channel_functions.keys())
+        while True:
+            print('Выберите, какую информацию о Shorts необходимо собрать:')
+            for i, function in enumerate(available_info):
+                print(f'{i + 1}. {function}')
+
+            selected_numbers = input('Введите номера, чтобы выбрать необходимую информацию через пробел\n(Или нажмите Enter для сбора всей информации): ')
+            if not selected_numbers:
+                self.logger.info('Выбор необходимой информации был пропущен.')
+                selected_video_info = available_info
+                break
+
+            else:
+                try:
+                    selected_numbers = [int(i) - 1 for i in selected_numbers.split()]
+                    selected_video_info = [available_info[i] for i in selected_numbers if 0 <= i < len(available_info)]
+                    break
+                except ValueError:
+                    self.logger.warning('Некорректный ввод номеров функций.')
+                    print('Некорректный ввод номеров функций!')
+        return selected_video_info
+
+
+    def scraping_channel_info(self, selected_channel_info):
+        channel_data = {}
+        for func in selected_channel_info:
+            current_scraper_functions = {}
+            if func in self.info_from_channel_functions:
+                self.logger.debug(f'Выбрана функция {func} для сбора информации.')
+                current_scraper_functions[func] = self.info_from_channel_functions[func]
+
+            collected_data = {}
+            for key in current_scraper_functions:
+                collected_data[key] = current_scraper_functions[key](self)
+            channel_data.update(collected_data)
+
+        self.click_element('channel_description_close_button')
+
+        return channel_data
 
     def scraping_channel_videos(self, selected_video_info):
         print('Начинаю прокрутку страницы!')
@@ -459,29 +556,48 @@ class ChannelScraper:
 
         return video_data
 
-    def scraping_channel_info(self, selected_channel_info):
-        channel_data = {}
-        for func in selected_channel_info:
-            current_scraper_functions = {}
-            if func in self.info_from_channel_functions:
-                self.logger.debug(f'Выбрана функция {func} для сбора информации.')
-                current_scraper_functions[func] = self.info_from_channel_functions[func]
+    def scraping_channel_shorts(self, selected_shorts_info):
+        print('Начинаю прокрутку страницы!')
+        body = driver.find_element('tag name', 'body')
+        last_height = driver.execute_script('return window.pageYOffset;')
+        while True:
+            body.send_keys(Keys.PAGE_DOWN)
+            time.sleep(1)
+            new_height = driver.execute_script('return window.pageYOffset;')
+            if new_height == last_height:
+                print('Страница прокручена до конца!')
+                break
+            last_height = new_height
 
-            collected_data = {}
-            for key in current_scraper_functions:
-                collected_data[key] = current_scraper_functions[key](self)
-            channel_data.update(collected_data)
+        shorts_elements = self.get_channel_all_shorts_elements()
+        time.sleep(1)
 
-        self.click_element('channel_description_close_button')
+        shorts_data = []
+        total_shorts = len(shorts_elements)
+        for shorts_number, shorts_element in enumerate(shorts_elements, 1):
+            self.logger.info(f'\nОбработка Shorts {shorts_number} из {total_shorts}...')
+            shorts_info = OrderedDict()
+            for func in selected_shorts_info:
+                if func in self.shorts_from_channel_functions:
+                    self.logger.debug(f'Выбрана функция {func} для сбора информации.')
+                    current_scraper_functions = self.shorts_from_channel_functions[func]
+                    shorts_info[func] = current_scraper_functions(self, shorts_element)
+                else:
+                    self.logger.warning(f'Выбранная пользователем информация не соответствует словарю функций.')
 
-        return channel_data
+            shorts_data.append(shorts_info)
+
+        return shorts_data
 
 
     def info_from_user(self):
         while True:
-            print('Выберите, какую информацию вы хотите собрать:\n1. Информация о канале.\n2. Информация о видео на канале.\n3. Вся информация.')
+            print(
+                'Выберите, какую информацию вы хотите собрать:\n1. Информация о канале.\n2. Информация о видео на канале.\n'
+                '3. Информация о Shorts на канале.\n4. Вся информация.'
+            )
             user_choice = input('Введите номер для выбора: ')
-            if user_choice == '1' or user_choice == '2' or user_choice == '3':
+            if user_choice == '1' or '2' or '3' or '4':
                 return user_choice
             else:
                 print('Ошибка: введен неверный номер!')
@@ -507,7 +623,7 @@ class ChannelScraper:
         elif user_choice == '2':
             selected_video_info = self.info_from_channel_video_input()
 
-            video_filter = self.channel_video_filter_input()
+            filters = self.channel_filter_input()
 
             for channel in channel_urls:
                 channel_name = extract_channel_name(channel)
@@ -516,19 +632,40 @@ class ChannelScraper:
 
                 self.click_element('channel_video_button')
 
-                self.channel_video_filter(video_filter)
+                self.channel_filter_click(filters)
                 time.sleep(1)
 
                 video_data = self.scraping_channel_videos(selected_video_info)
                 save_json_file(video_data, f'channel_scraper_output_data/{channel_name}_video.json')
                 self.save_to_googlesheets(video_data, SPREADSHEET_ID, f'{channel_name}_video')
 
-        #Собираем всю информацию.
+        #Собираем информацию о Shorts на канале.
         elif user_choice == '3':
+            selected_shorts_info = self.info_from_channel_shorts_input()
+
+            filters = self.channel_filter_input()
+
+            for channel in channel_urls:
+                channel_name = extract_channel_name(channel)
+                driver.get(channel)
+                time.sleep(1)
+
+                self.click_element('channel_shorts_button')
+
+                self.channel_filter_click(filters)
+                time.sleep(1)
+
+                shorts_data = self.scraping_channel_shorts(selected_shorts_info)
+                save_json_file(shorts_data, f'channel_scraper_output_data/{channel_name}_shorts.json')
+                self.save_to_googlesheets(shorts_data, SPREADSHEET_ID, f'{channel_name}_shorts')
+
+        #Собираем всю информацию.
+        elif user_choice == '4':
             selected_channel_info = self.info_from_channel_input()
             selected_video_info = self.info_from_channel_video_input()
+            selected_shorts_info = self.info_from_channel_shorts_input()
 
-            video_filter = self.channel_video_filter_input()
+            filters = self.channel_filter_input()
 
             for channel in channel_urls:
                 channel_name = extract_channel_name(channel)
@@ -540,15 +677,26 @@ class ChannelScraper:
                 save_json_file(channel_data, f'channel_scraper_output_data/{channel_name}.json')
                 self.save_to_googlesheets(channel_data, SPREADSHEET_ID, channel_name)
 
-                self.click_element('channel_video_button')
-
-                self.channel_video_filter(video_filter)
-                time.sleep(1)
 
                 #Собираем информацию о видео на канале.
+                self.click_element('channel_video_button')
+
+                self.channel_filter_click(filters)
+                time.sleep(1)
+
                 video_data = self.scraping_channel_videos(selected_video_info)
                 save_json_file(video_data, f'channel_scraper_output_data/{channel_name}_video.json')
                 self.save_to_googlesheets(video_data, SPREADSHEET_ID, f'{channel_name}_video')
+
+                #Собираем информацию о Shorts на канале.
+                self.click_element('channel_shorts_button')
+
+                self.channel_filter_click(filters)
+                time.sleep(1)
+
+                shorts_data = self.scraping_channel_shorts(selected_shorts_info)
+                save_json_file(shorts_data, f'channel_scraper_output_data/{channel_name}_shorts.json')
+                self.save_to_googlesheets(shorts_data, SPREADSHEET_ID, f'{channel_name}_shorts')
 
         input('Нажмите Enter, чтобы закрыть драйвер!')
         driver.quit()

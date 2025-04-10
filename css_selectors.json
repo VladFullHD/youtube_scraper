@@ -61,5 +61,10 @@
   "channel_video_release_date": "#metadata-line > span:nth-child(4)",
   "channel_video_preview": "#thumbnail > yt-image > img",
   "popular_filter": "#chips-content #scroll-container iron-selector yt-chip-cloud-chip-renderer:nth-child(2)",
-  "old_filter": "#chips-content #scroll-container iron-selector yt-chip-cloud-chip-renderer:nth-child(3)"
+  "old_filter": "#chips-content #scroll-container iron-selector yt-chip-cloud-chip-renderer:nth-child(3)",
+  "channel_shorts_button": "#tabsContent > yt-tab-group-shape > div.yt-tab-group-shape-wiz__tabs > yt-tab-shape:nth-child(3)",
+  "channel_all_shorts": "#contents > ytd-rich-item-renderer",
+  "channel_shorts_title": "#content > ytm-shorts-lockup-view-model-v2 > ytm-shorts-lockup-view-model > div > h3 > a > span",
+  "channel_shorts_views": "#content > ytm-shorts-lockup-view-model-v2 > ytm-shorts-lockup-view-model > div > div.shortsLockupViewModelHostMetadataSubhead.shortsLockupViewModelHostOutsideMetadataSubhead > span",
+  "channel_shorts_preview": "#content > ytm-shorts-lockup-view-model-v2 > ytm-shorts-lockup-view-model > a > div > img"
 }
