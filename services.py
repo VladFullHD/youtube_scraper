@@ -1,7 +1,6 @@
 import time
-
 from channel_info_scraper import ChannelInfo, ChannelVideo, ChannelShorts
-from file_utils import save_json_file
+from utils import save_json_file, click_element
 from utils import extract_channel_name, save_to_googlesheets, channel_filter_input
 
 
@@ -11,6 +10,14 @@ class ChannelBaseService:
         self.css_selectors = css_selectors
         self.credentials_file = credentials_file
         self.spreadsheet_id = spreadsheet_id
+
+    def channel_filter_click(self, filters):
+        if filters == '1':
+            click_element(self.driver, self.css_selectors, 'popular_filter')
+            time.sleep(1)
+        elif filters == '2':
+            click_element(self.driver, self.css_selectors, 'old_filter')
+            time.sleep(1)
 
 
 class UserChoiceHandler(ChannelBaseService):
@@ -116,7 +123,13 @@ class ChannelVideoService(ChannelBaseService):
         self.driver.get(channel_url)
         time.sleep(1)
 
-        video_data = self.channel_video_scraper.scraping_channel_videos(selected_video_functions, filters)
+        click_element(self.driver, self.css_selectors, 'channel_video_button')
+        time.sleep(0.5)
+
+        self.channel_filter_click(filters)
+        time.sleep(0.5)
+
+        video_data = self.channel_video_scraper.scraping_channel_videos(selected_video_functions)
 
         save_json_file(video_data, f'channel_scraper_output_data/{channel_name}_video.json')
         save_to_googlesheets(video_data, self.spreadsheet_id, f'{channel_name}_video', self.credentials_file)
@@ -142,7 +155,13 @@ class ChannelShortsService(ChannelBaseService):
         self.driver.get(channel_url)
         time.sleep(1)
 
-        shorts_data = self.channel_shorts_scraper.scraping_channel_shorts(selected_shorts_functions, filters)
+        click_element(self.driver, self.css_selectors, 'channel_shorts_button')
+        time.sleep(0.5)
+
+        self.channel_filter_click(filters)
+        time.sleep(0.5)
+
+        shorts_data = self.channel_shorts_scraper.scraping_channel_shorts(selected_shorts_functions)
 
         save_json_file(shorts_data, f'channel_scraper_output_data/{channel_name}_shorts.json')
         save_to_googlesheets(shorts_data, self.spreadsheet_id, f'{channel_name}_shorts', self.credentials_file)

@@ -1,6 +1,6 @@
 import logging
 from services import ChannelInfoService, ChannelVideoService, ChannelShortsService, UserChoiceHandler
-from file_utils import load_json_file
+from utils import load_json_file
 from driver_utils import setup_options_webdriver
 
 logging.basicConfig(
