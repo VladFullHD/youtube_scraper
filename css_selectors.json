@@ -1,14 +1,15 @@
 {
-  "title": "#video-title > yt-formatted-string",
-  "all_videos": "#contents > ytd-video-renderer",
-  "video_url": "#video-title",
-  "views": "#metadata-line > span:nth-child(3)",
-  "release_date": "#metadata-line > span:nth-child(4)",
-  "channel_info": "#channel-info",
-  "channel_url": "#channel-thumbnail",
+  "search_title": "#video-title > yt-formatted-string",
+  "search_all_videos": "#contents > ytd-video-renderer",
+  "search_video_url": "#video-title",
+  "search_views": "#metadata-line > span:nth-child(3)",
+  "search_release_date": "#metadata-line > span:nth-child(4)",
+  "search_channel_info": "#channel-info",
+  "search_channel_url": "#channel-thumbnail",
+  "search_video_preview": "img.yt-core-image",
   "shorts_checker": "#overlays > ytd-thumbnail-overlay-time-status-renderer > div.thumbnail-overlay-badge-shape.style-scope.ytd-thumbnail-overlay-time-status-renderer > badge-shape > div.badge-shape-wiz__icon",
   "live_checker": ".badge-style-type-live-now-alternate",
-  "preview_image_url": "img.yt-core-image",
+
 
   "video_title": "#title > h1 > yt-formatted-string",
   "video_likes": "button[aria-label^=\"Видео понравилось вам и ещё\"]",

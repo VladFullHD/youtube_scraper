@@ -1,7 +1,10 @@
 import time
 from channel_info_scraper import ChannelInfo, ChannelVideo, ChannelShorts
-from utils import save_json_file, click_element
-from utils import extract_channel_name, save_to_googlesheets, channel_filter_input
+from utils.navigation_utils import click_element
+from utils.file_utils import save_json_file
+from utils.string_utils import extract_channel_name
+from utils.google_sheets_utils import save_to_googlesheets
+from utils.user_input_utils import channel_filter_input
 
 
 class ChannelBaseService:

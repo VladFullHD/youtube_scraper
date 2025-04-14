@@ -1,10 +1,10 @@
 import logging
 import time
 from collections import OrderedDict
-from selenium.common import NoSuchElementException
-from selenium.webdriver.common.by import By
-from driver_utils import scroll_selenium_keys
-from utils import click_element, get_functions_from_user
+from utils.navigation_utils import click_element, scroll_selenium_keys
+from utils.user_input_utils import get_functions_from_user
+from utils import element_utils
+
 
 logger = logging.getLogger(__name__)
 
@@ -15,44 +15,17 @@ class ChannelBase:
         self.css_selectors = css_selectors
         self.logger = logging.getLogger(__name__)
 
-    def click_element(self, selector_key, timeout=1):
+    def click_element(self, selector_key):
         click_element(self.driver, self.css_selectors, selector_key)
 
-    def get_elements(self, selector_key, error_message):
-        try:
-            elements = self.driver.find_elements(By.CSS_SELECTOR, self.css_selectors[selector_key])
-            self.logger.info(f'Найдено {len(elements)} элементов видео.')
-            return elements
-        except NoSuchElementException:
-            self.logger.warning(error_message)
-            return []
-        except Exception as e:
-            self.logger.error(f'Произошла ошибка при получении элементов {selector_key}: {e}.')
-            return []
+    def _get_elements(self, selector_key, error_message):
+        return element_utils.get_elements(self.driver, self.css_selectors, selector_key, error_message)
 
-    def get_element_text(self, element, selector_key, error_message):
-        try:
-            element_text = element.find_element(By.CSS_SELECTOR, self.css_selectors[selector_key]).text.strip()
-            self.logger.info(f'Текст элемента {selector_key} получен успешно.')
-            return element_text
-        except NoSuchElementException:
-            self.logger.warning(error_message)
-            return ''
-        except Exception as e:
-            self.logger.error(f'Произошла ошибка при получении текста элемента {selector_key}: {e}.')
-            return ''
+    def _get_element_text(self, element, selector_key, error_message):
+        return element_utils.get_element_text(element, self.css_selectors, selector_key, error_message)
 
-    def get_element_attribute(self, element, selector_key, attribute, error_message):
-        try:
-            element_attribute = element.find_element(By.CSS_SELECTOR, self.css_selectors[selector_key]).get_attribute(attribute)
-            self.logger.info(f'Атрибут {attribute} элемента {selector_key} получен успешно.')
-            return element_attribute
-        except NoSuchElementException:
-            self.logger.warning(error_message)
-            return ''
-        except Exception as e:
-            self.logger.error(f'Произошла ошибка при получении атрибута {attribute} элемента {selector_key}: {e}.')
-            return ''
+    def _get_element_attribute(self, element, selector_key, attribute, error_message):
+        return element_utils.get_element_attribute(element, self.css_selectors, selector_key, attribute, error_message)
 
 
 class ChannelInfo(ChannelBase):
@@ -74,28 +47,28 @@ class ChannelInfo(ChannelBase):
         }
 
     def get_channel_subscribers(self):
-        return self.get_element_text(
+        return self._get_element_text(
             element=self.driver,
             selector_key='channel_subscribers',
             error_message='Количество подписчиков на канале не найдено.'
         )
 
     def get_channel_number_videos(self):
-        return self.get_element_text(
+        return self._get_element_text(
             element=self.driver,
             selector_key='channel_number_videos',
             error_message='Количество видео не найдено.'
         )
 
     def get_channel_full_name(self):
-        return self.get_element_text(
+        return self._get_element_text(
             element=self.driver,
             selector_key='channel_full_name',
             error_message='Полное наименование канала не найдено.'
         )
 
     def get_channel_name(self):
-        return self.get_element_text(
+        return self._get_element_text(
             element=self.driver,
             selector_key='channel_name',
             error_message='Наименование канала не найдено.'
@@ -104,42 +77,42 @@ class ChannelInfo(ChannelBase):
     def get_channel_main_description(self):
         self.click_element('channel_description_button')
         time.sleep(0.5)
-        return self.get_element_text(
+        return self._get_element_text(
             element=self.driver,
             selector_key='channel_main_description',
             error_message='Описание канала не найдено.'
         )
 
     def get_channel_links(self):
-        return self.get_element_text(
+        return self._get_element_text(
             element=self.driver,
             selector_key='channel_links',
             error_message='Ссылки в описании канала не найдены.'
         )
 
     def get_channel_country(self):
-        return self.get_element_text(
+        return self._get_element_text(
             element=self.driver,
             selector_key='channel_country',
             error_message='Страна регистрации канала не найдена.'
         )
 
     def get_channel_registration_date(self):
-        return self.get_element_text(
+        return self._get_element_text(
             element=self.driver,
             selector_key='channel_registration_date',
             error_message='Дата регистрации канала не найдена.'
         )
 
     def get_channel_total_views(self):
-        return self.get_element_text(
+        return self._get_element_text(
             element=self.driver,
             selector_key='channel_total_views',
             error_message='Общее количество просмотров на канале не найдено.'
         )
 
     def get_channel_banner(self):
-        return self.get_element_attribute(
+        return self._get_element_attribute(
             element=self.driver,
             selector_key='channel_banner',
             attribute='src',
@@ -147,7 +120,7 @@ class ChannelInfo(ChannelBase):
         )
 
     def get_channel_profile_picture(self):
-        return self.get_element_attribute(
+        return self._get_element_attribute(
             element=self.driver,
             selector_key='channel_profile_picture',
             attribute='src',
@@ -184,20 +157,20 @@ class ChannelVideo(ChannelBase):
         }
 
     def get_channel_all_video_elements(self):
-        return self.get_elements(
+        return self._get_elements(
             selector_key='channel_all_videos',
             error_message='Не удалось найти ни одного элемента видео.'
         )
 
     def get_channel_video_title(self, video_element):
-        return self.get_element_text(
+        return self._get_element_text(
             element=video_element,
             selector_key='channel_video_title',
             error_message='Название видео не найдено.'
         )
 
     def get_channel_video_url(self, video_element):
-        return self.get_element_attribute(
+        return self._get_element_attribute(
             element=video_element,
             selector_key='channel_video_url',
             attribute='href',
@@ -205,21 +178,21 @@ class ChannelVideo(ChannelBase):
         )
 
     def get_channel_video_views(self, video_element):
-        return self.get_element_text(
+        return self._get_element_text(
             element=video_element,
             selector_key='channel_video_views',
             error_message='Количество просмотров видео не найдено.'
         )
 
     def get_channel_video_release_date(self, video_element):
-        return self.get_element_text(
+        return self._get_element_text(
             element=video_element,
             selector_key='channel_video_release_date',
             error_message='Дата выхода видео не найдена.'
         )
 
     def get_channel_video_preview(self, video_element):
-        return self.get_element_attribute(
+        return self._get_element_attribute(
             element=video_element,
             selector_key='channel_video_preview',
             attribute='src',
@@ -263,27 +236,27 @@ class ChannelShorts(ChannelBase):
         }
 
     def get_channel_all_shorts_elements(self):
-        return self.get_elements(
+        return self._get_elements(
             selector_key='channel_all_shorts',
             error_message='Не удалось найти ни одного элемента Shorts.'
         )
 
     def get_channel_shorts_title(self, video_element):
-        return self.get_element_text(
+        return self._get_element_text(
             element=video_element,
             selector_key='channel_shorts_title',
             error_message='Название Shorts не найдено.'
         )
 
     def get_channel_shorts_views(self, video_element):
-        return self.get_element_text(
+        return self._get_element_text(
             element=video_element,
             selector_key='channel_shorts_views',
             error_message='Количество просмотров Shorts не найдено.'
         )
 
     def get_channel_shorts_preview(self, video_element):
-        return self.get_element_attribute(
+        return self._get_element_attribute(
             element=video_element,
             selector_key='channel_shorts_preview',
             attribute='src',
