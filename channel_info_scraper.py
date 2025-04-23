@@ -1,7 +1,7 @@
 import logging
 import time
 from collections import OrderedDict
-from utils.navigation_utils import click_element, scroll_selenium_keys
+from utils.navigation_utils import click_element_css, scroll_selenium_keys
 from utils.user_input_utils import get_functions_from_user
 from utils import element_utils
 
@@ -15,8 +15,8 @@ class ChannelBase:
         self.css_selectors = css_selectors
         self.logger = logging.getLogger(__name__)
 
-    def click_element(self, selector_key):
-        click_element(self.driver, self.css_selectors, selector_key)
+    def click_element_css(self, selector_key):
+        click_element_css(self.driver, self.css_selectors, selector_key)
 
     def _get_elements(self, selector_key, error_message):
         return element_utils.get_elements(self.driver, self.css_selectors, selector_key, error_message)
@@ -75,7 +75,7 @@ class ChannelInfo(ChannelBase):
         )
 
     def get_channel_main_description(self):
-        self.click_element('channel_description_button')
+        self.click_element_css('channel_description_button')
         time.sleep(0.5)
         return self._get_element_text(
             element=self.driver,
@@ -128,9 +128,9 @@ class ChannelInfo(ChannelBase):
         )
 
 
-    def scraping_channel_info(self, selected_channel_info):
+    def scraping_channel_info(self, selected_info_functions):
         channel_data = {}
-        for func_name in selected_channel_info:
+        for func_name in selected_info_functions:
             if func_name in self.info_functions:
                 self.logger.debug(f'Выбрана функция {func_name} для сбора информации.')
                 func = self.info_functions[func_name]
@@ -138,7 +138,7 @@ class ChannelInfo(ChannelBase):
             else:
                 self.logger.warning(f'Выбранная пользователем функция "{func_name}" не соответствует словарю функций.')
 
-        self.click_element('channel_description_close_button')
+        self.click_element_css('channel_description_close_button')
         return channel_data
 
     def get_info_functions(self):
@@ -200,7 +200,7 @@ class ChannelVideo(ChannelBase):
         )
 
 
-    def scraping_channel_videos(self, selected_video_info):
+    def scraping_channel_videos(self, selected_video_functions):
         scroll_selenium_keys(self.driver)
 
         video_elements = self.get_channel_all_video_elements()
@@ -211,7 +211,7 @@ class ChannelVideo(ChannelBase):
         for video_number, video_element in enumerate(video_elements, 1):
             self.logger.info(f'\nОбработка видео {video_number} из {total_videos}...')
             video_info = OrderedDict()
-            for func_name in selected_video_info:
+            for func_name in selected_video_functions:
                 if func_name in self.video_functions:
                     self.logger.debug(f'Выбрана функция {func_name} для сбора информации.')
                     func = self.video_functions[func_name]
@@ -264,7 +264,7 @@ class ChannelShorts(ChannelBase):
         )
 
 
-    def scraping_channel_shorts(self, selected_shorts_info):
+    def scraping_channel_shorts(self, selected_shorts_functions):
         scroll_selenium_keys(self.driver)
 
         shorts_elements = self.get_channel_all_shorts_elements()
@@ -275,7 +275,7 @@ class ChannelShorts(ChannelBase):
         for shorts_number, shorts_element in enumerate(shorts_elements, 1):
             self.logger.info(f'\nОбработка Shorts {shorts_number} из {total_shorts}...')
             shorts_info = OrderedDict()
-            for func_name in selected_shorts_info:
+            for func_name in selected_shorts_functions:
                 if func_name in self.shorts_functions:
                     self.logger.debug(f'Выбрана функция {func_name} для сбора информации.')
                     func = self.shorts_functions[func_name]

@@ -5,7 +5,7 @@ from google.oauth2.service_account import Credentials
 logger = logging.getLogger(__name__)
 
 
-def save_to_googlesheets(data, spreadsheet_id, channel_name, credentials_file):
+def save_to_googlesheets(data, spreadsheet_id, sheet_name, credentials_file):
     try:
         SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 
@@ -16,7 +16,7 @@ def save_to_googlesheets(data, spreadsheet_id, channel_name, credentials_file):
         spreadsheet = service.spreadsheets().get(spreadsheetId=spreadsheet_id).execute()
         sheet_exists = False
         for sheet in spreadsheet.get('sheets', []):
-            if sheet['properties']['title'] == channel_name:
+            if sheet['properties']['title'] == sheet_name:
                 sheet_exists = True
                 break
 
@@ -25,15 +25,15 @@ def save_to_googlesheets(data, spreadsheet_id, channel_name, credentials_file):
                 'requests': [{
                     'addSheet': {
                         'properties': {
-                            'title': channel_name
+                            'title': sheet_name
                         }
                     }
                 }]
             }
             service.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id, body=add_sheet_request).execute()
-            logging.info(f'Создан новый лист "{channel_name}".')
+            logging.info(f'Создан новый лист "{sheet_name}".')
         else:
-            logging.info(f'Лист "{channel_name}" уже существует.')
+            logging.info(f'Лист "{sheet_name}" уже существует.')
 
         if not data:
             logging.warning(f'Нет данных для выгрузки в Google Sheets')
@@ -42,7 +42,7 @@ def save_to_googlesheets(data, spreadsheet_id, channel_name, credentials_file):
         headers = list(data[0].keys())
         values = [headers] + [list(item.values()) for item in data]
 
-        range_ = f"'{channel_name}'!A1"
+        range_ = f"'{sheet_name}'!A1"
 
         body = {
             'values': values

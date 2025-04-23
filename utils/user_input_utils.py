@@ -1,4 +1,5 @@
 import logging
+from utils import load_json_file
 
 logger = logging.getLogger(__name__)
 
@@ -36,3 +37,29 @@ def channel_filter_input():
             return '2'
         else:
             print('Ошибка: введен некорректный фильтр!')
+
+def search_filter_input(search_filters):
+    available_filters = list(search_filters.keys())
+    print(f'Доступные фильтры: {', '.join(available_filters)}')
+
+    user_filter_input = input('Введите номера нужных фильтров через пробел: ').strip()
+
+    filter_names = []
+    selected_filters = []
+    if user_filter_input:
+        selected_filters = [f.strip() for f in user_filter_input.split(',') if f.strip() in search_filters]
+    if not selected_filters:
+            print(f'Некорректный номер фильтра.')
+    else:
+        filter_names = selected_filters
+
+    return filter_names
+
+
+def search_request_input():
+    while True:
+        search_request = input('Введите поисковый запрос для поиска в YouTube: ').strip()
+        if search_request:
+            return search_request
+        else:
+            print('Ошибка: не введен поисковый запрос.')

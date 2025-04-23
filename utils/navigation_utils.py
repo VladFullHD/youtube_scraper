@@ -11,7 +11,7 @@ from selenium.webdriver.common.action_chains import ActionChains
 
 logger = logging.getLogger(__name__)
 
-def click_element(driver, css_selectors, selector_key, timeout=1):
+def click_element_css(driver, css_selectors, selector_key, timeout=1):
     try:
         element = WebDriverWait(driver, timeout).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, css_selectors[selector_key]))
@@ -20,6 +20,20 @@ def click_element(driver, css_selectors, selector_key, timeout=1):
         logging.info(f'Клик на элемент {selector_key} выполнен успешно.')
     except TimeoutException:
         logging.warning(f'Не удалось кликнуть на элемент {selector_key}.')
+
+def click_element_xpath(driver, xpath, key, timeout=1):
+    try:
+        element = WebDriverWait(driver, timeout).until(
+            EC.presence_of_element_located((By.XPATH, xpath[key]))
+        )
+        ActionChains(driver).move_to_element(element).click().perform()
+        logging.info(f'Клик на элемент {key} выполнен успешно.')
+    except TimeoutException:
+        logging.warning(f'Не удалось кликнуть на элемент {key}.')
+
+def sending_request(driver, search_request):
+    ActionChains(driver).send_keys(search_request).perform()
+    driver.execute_script('document.forms[0].submit()')
 
 def scroll_selenium_keys(driver):
     body = driver.find_element('tag name', 'body')

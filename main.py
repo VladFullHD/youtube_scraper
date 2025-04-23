@@ -1,5 +1,6 @@
 import logging
-from services import ChannelInfoService, ChannelVideoService, ChannelShortsService, UserChoiceHandler
+from services import ChannelInfoService, ChannelVideoService, ChannelShortsService, UserChoiceHandler, \
+    SearchVideoService
 from utils.webdriver_utils import setup_options_webdriver
 from utils.file_utils import load_json_file
 
@@ -16,9 +17,11 @@ SPREADSHEET_ID = '1LsrDyfNiK8MA0dsIza_4ULZyyOfRQnga_PqllawgmPE'
 
 def main():
     driver = setup_options_webdriver()
-    channel_urls = load_json_file('channel_scraper_input_data/channel_links.json')
-    css_selectors = load_json_file('css_selectors.json')
 
+    css_selectors = load_json_file('css_selectors.json')
+    search_filters = load_json_file('search_filters.json')
+
+    search_video_service = SearchVideoService(driver, css_selectors, search_filters, CREDENTIALS_FILE, SPREADSHEET_ID)
     channel_info_service = ChannelInfoService(driver, css_selectors, CREDENTIALS_FILE, SPREADSHEET_ID)
     channel_video_service = ChannelVideoService(driver, css_selectors, CREDENTIALS_FILE, SPREADSHEET_ID)
     channel_shorts_service = ChannelShortsService(driver, css_selectors, CREDENTIALS_FILE, SPREADSHEET_ID)
@@ -28,12 +31,14 @@ def main():
         css_selectors,
         CREDENTIALS_FILE,
         SPREADSHEET_ID,
+        search_video_service,
         channel_info_service,
         channel_video_service,
         channel_shorts_service
     )
 
-    user_choice_handler.handler_user_choice(channel_urls)
+    user_choice_handler.youtube_scraper_handler()
+
 
 if __name__ == '__main__':
     main()
