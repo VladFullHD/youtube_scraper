@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 def click_element_css(driver, css_selectors, selector_key, timeout=1):
     try:
         element = WebDriverWait(driver, timeout).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, css_selectors[selector_key]))
+            EC.element_to_be_clickable((By.CSS_SELECTOR, css_selectors[selector_key]))
         )
         ActionChains(driver).move_to_element(element).click().perform()
         logging.info(f'Клик на элемент {selector_key} выполнен успешно.')

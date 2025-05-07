@@ -8,6 +8,7 @@ from utils.file_utils import save_json_file
 from utils.string_utils import extract_channel_name
 from utils.google_sheets_utils import save_to_googlesheets
 from utils.user_input_utils import channel_filter_input, search_filter_input
+from video_info_scraper import VideoInfo, ShortsInfo
 
 logger = logging.getLogger(__name__)
 
@@ -47,6 +48,8 @@ class UserChoiceHandler(BaseService):
             credentials_file,
             spreadsheet_id,
             search_video_service,
+            video_info_service,
+            shorts_info_service,
             channel_info_service,
             channel_video_service,
             channel_shorts_service
@@ -59,6 +62,8 @@ class UserChoiceHandler(BaseService):
         )
 
         self.search_video_service = search_video_service
+        self.video_info_service = video_info_service
+        self.shorts_info_service = shorts_info_service
         self.channel_info_service = channel_info_service
         self.channel_video_service = channel_video_service
         self.channel_shorts_service = channel_shorts_service
@@ -68,7 +73,8 @@ class UserChoiceHandler(BaseService):
             print(
                 'Выберите, какую программу вы хотите запустить:\n'
                 '1. Обработчик видео из поисковых запросов.\n'
-                '2. Обработчик YouTube-каналов.'
+                '2. Обработчик YouTube-каналов.\n'
+                '3. Получение полной информации о видео.'
             )
 
             user_choice = input('Введите номер для выбора: ')
@@ -83,6 +89,12 @@ class UserChoiceHandler(BaseService):
                 logging.info('Запускаю обработчик YouTube-каналов.')
                 channel_urls = load_json_file('channel_scraper_input_data/channel_links.json')
                 self.channel_scraper_handler(channel_urls)
+                break
+
+            elif user_choice == '3':
+                logging.info('Запускаю процесс получения полной информации о видео.')
+                input_data = load_json_file('search_scraper_output_data/league of legends.json')
+                self.video_scraper_handler(input_data)
                 break
 
             else:
@@ -129,6 +141,38 @@ class UserChoiceHandler(BaseService):
             else:
                 print('Ошибка: введен неверный номер!')
 
+    def video_scraper_handler(self, input_data):
+        while True:
+            print(
+                'Выберите, информацию о каких типах видео вы хотите собрать:\n1. Информация о Video.\n2. Информация о Shorts.\n'
+                '3. Информация о всех типах видео.'
+            )
+
+            user_choice = input('Введите номер для выбора: ')
+
+            if user_choice == '1':
+                selected_video_info_functions = self.video_info_service.get_video_info_functions()
+                self.video_info_service.get_video_info(input_data, selected_video_info_functions)
+                break
+
+            elif user_choice == '2':
+                selected_shorts_info_functions = self.shorts_info_service.get_shorts_info_functions()
+                self.shorts_info_service.get_shorts_info(input_data, selected_shorts_info_functions)
+                break
+
+            elif user_choice == '3':
+                selected_video_info_functions = self.video_info_service.get_video_info_functions()
+                selected_shorts_info_functions = self.shorts_info_service.get_shorts_info_functions()
+
+                self.video_info_service.get_video_info(input_data, selected_video_info_functions)
+                self.shorts_info_service.get_shorts_info(input_data, selected_shorts_info_functions)
+                break
+
+            else:
+                print('Ошибка: введен неверный номер!')
+
+
+
 class SearchVideoService(BaseService):
     def __init__(self, driver, css_selectors, search_filters, credentials_file, spreadsheet_id):
         super().__init__(driver, css_selectors, credentials_file, spreadsheet_id)
@@ -156,6 +200,42 @@ class SearchVideoService(BaseService):
 
         save_json_file(search_video_data, f'search_scraper_output_data/{search_request}.json')
         save_to_googlesheets(search_video_data, self.spreadsheet_id, search_request, self.credentials_file)
+
+
+class VideoInfoService(BaseService):
+    def __init__(self, driver, css_selectors, credentials_file, spreadsheet_id):
+        super().__init__(driver, css_selectors, credentials_file, spreadsheet_id)
+        self.video_info_scraper = VideoInfo(driver, css_selectors)
+
+    def get_video_info_functions(self):
+        selected_video_info_functions = self.video_info_scraper.get_video_info_functions()
+        return selected_video_info_functions
+
+    def get_video_info(self, input_data, selected_video_info_functions):
+        filtered_data = [video for video in input_data if video.get('type') == 'Video']
+
+        video_data = self.video_info_scraper.scraping_video_info(filtered_data, selected_video_info_functions)
+
+        save_json_file(video_data, 'video_scraper_output_data/league_of_legends_video.json')
+        save_to_googlesheets(video_data, self.spreadsheet_id, 'league_of_legends_video', self.credentials_file)
+
+class ShortsInfoService(BaseService):
+    def __init__(self, driver, css_selectors, credentials_file, spreadsheet_id):
+        super().__init__(driver, css_selectors, credentials_file, spreadsheet_id)
+        self.shorts_info_scraper = ShortsInfo(driver, css_selectors)
+
+    def get_shorts_info_functions(self):
+        selected_shorts_info_functions = self.shorts_info_scraper.get_shorts_info_functions()
+        return selected_shorts_info_functions
+
+    def get_shorts_info(self, input_data, selected_shorts_info_functions):
+        filtered_data = [video for video in input_data if video.get('type') == 'Shorts']
+
+        shorts_data = self.shorts_info_scraper.scraping_shorts_info(filtered_data, selected_shorts_info_functions)
+
+        save_json_file(shorts_data, 'video_scraper_output_data/league_of_legends_shorts.json')
+        save_to_googlesheets(shorts_data, self.spreadsheet_id, 'league_of_legends_shorts', self.credentials_file)
+
 
 class ChannelInfoService(BaseService):
     def __init__(self, driver, css_selectors, credentials_file, spreadsheet_id):

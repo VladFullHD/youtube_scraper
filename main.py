@@ -1,6 +1,6 @@
 import logging
 from services import ChannelInfoService, ChannelVideoService, ChannelShortsService, UserChoiceHandler, \
-    SearchVideoService
+    SearchVideoService, VideoInfoService, ShortsInfoService
 from utils.webdriver_utils import setup_options_webdriver
 from utils.file_utils import load_json_file
 
@@ -22,6 +22,8 @@ def main():
     search_filters = load_json_file('search_filters.json')
 
     search_video_service = SearchVideoService(driver, css_selectors, search_filters, CREDENTIALS_FILE, SPREADSHEET_ID)
+    video_info_service = VideoInfoService(driver, css_selectors, CREDENTIALS_FILE, SPREADSHEET_ID)
+    shorts_info_service = ShortsInfoService(driver, css_selectors, CREDENTIALS_FILE, SPREADSHEET_ID)
     channel_info_service = ChannelInfoService(driver, css_selectors, CREDENTIALS_FILE, SPREADSHEET_ID)
     channel_video_service = ChannelVideoService(driver, css_selectors, CREDENTIALS_FILE, SPREADSHEET_ID)
     channel_shorts_service = ChannelShortsService(driver, css_selectors, CREDENTIALS_FILE, SPREADSHEET_ID)
@@ -32,6 +34,8 @@ def main():
         CREDENTIALS_FILE,
         SPREADSHEET_ID,
         search_video_service,
+        video_info_service,
+        shorts_info_service,
         channel_info_service,
         channel_video_service,
         channel_shorts_service

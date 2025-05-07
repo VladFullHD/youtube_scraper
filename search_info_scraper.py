@@ -56,7 +56,6 @@ class SearchVideo(SearchVideoBase):
             self.logger.error(f'Ошибка при определении типа видео: {e}.')
             return 'Неизвестно'
 
-
     def get_search_video_title(self, video_element):
         return self._get_element_text(
             element=video_element,
